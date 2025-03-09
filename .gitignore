@@ -2,7 +2,7 @@
 .cache
 build/
 lib/
-locales/
+/locales/
 *.exe
 *.exe.*
 *.cppcheck
