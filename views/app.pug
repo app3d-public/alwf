@@ -1,0 +1,26 @@
+doctype html
+html(lang="_(lang)") 
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title WebView2 Sample
+    link(rel="stylesheet", href="/style.css")
+    script(src="/app.js")
+  body
+    section.hero
+      h1 WebView2 Sample
+      p.content #{content}
+      
+      div.flex-spacer
+      
+      button.btn(onclick="sendMessage()") _(send)
+      
+      div.navigation-wrapper
+        nav.navigation
+          button#prev _(prev)
+          span#page-indicator _(page)
+          button#next _(next)
+    
+    footer.links
+      a(href="https://example.com", target="_blank") _(external)
+      a(href="about") _(about)

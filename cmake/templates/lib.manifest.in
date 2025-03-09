@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+    <assemblyIdentity type="win32" name="lib@PACKAGE_NAME@" version="@PACKAGE_VERSION@.0" />
+    <file name="lib@PACKAGE_NAME@.dll" />
+</assembly>

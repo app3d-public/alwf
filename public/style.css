@@ -1,0 +1,123 @@
+* {
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Inter', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+  
+  .hero {
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    color: white;
+    text-align: center;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 20px;
+  }
+  
+  .hero h1 {
+    font-size: 28px;
+    margin-top: 40px;
+    margin-bottom: 5px;
+  }
+  
+  p.content {
+    font-size: 16px;
+    opacity: 0.9;
+    margin-top: 0;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .flex-spacer {
+    flex-grow: 1;
+  }
+  
+  .btn {
+    background: linear-gradient(135deg, #ff318c, #ff7e33);
+    border: none;
+    padding: 12px 24px;
+    font-size: 16px;
+    color: #fff;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.3s ease, transform 0.2s ease;
+    margin-bottom: 20px;
+  }
+  
+  .btn:hover {
+    background: linear-gradient(135deg, #ff4c9e, #ff8b38);
+    transform: translateY(-2px);
+  }
+  
+  .navigation-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .navigation {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  #page-indicator {
+    font-size: 16px;
+    color: #fff;
+    font-weight: normal;
+  }
+  
+  .navigation button {
+    background: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    color: #2575fc;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+  
+  .navigation button:disabled {
+    background: #fff;
+    color: black;
+    opacity: 0.2;
+    cursor: not-allowed;
+  }
+  
+  .navigation button:hover:not(:disabled) {
+    background: #e0e0e0;
+    transform: translateY(-2px);
+  }
+  
+  .links {
+    background: white;
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .links a {
+    display: block;
+    color: #007bff;
+    text-decoration: none;
+    font-size: 16px;
+    margin: 8px 0;
+  }
+  
+  .links a:hover {
+    text-decoration: underline;
+  }
+  

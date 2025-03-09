@@ -1,0 +1,17 @@
+#include <string>
+
+namespace templates
+{
+    namespace <%= namespace %>
+    {
+        <%_ if (variables.length > 0) { _%>
+        struct Data {
+            <%_ variables.forEach(varName => { _%>
+            const char* <%= varName %>;
+            <%_ }); _%>
+        };
+        <%_ } _%>
+
+        std::string render(<% if (variables.length > 0) { %>const Data& data<% } %>);
+    }
+}

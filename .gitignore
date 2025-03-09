@@ -1,0 +1,10 @@
+.vscode/
+.cache
+build/
+lib/
+locales/
+*.exe
+*.exe.*
+*.cppcheck
+cache
+node_modules

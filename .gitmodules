@@ -1,0 +1,6 @@
+[submodule "modules/acul"]
+	path = modules/acul
+	url = git@git.dev.lan:app3d/app3d-core.git
+[submodule "modules/awin"]
+	path = modules/awin
+	url = git@git.dev.lan:app3d/app3d-window.git

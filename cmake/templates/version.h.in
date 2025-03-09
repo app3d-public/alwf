@@ -1,0 +1,14 @@
+#pragma once
+
+// clang-format off
+#define APP_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
+#define APP_VERSION_MINOR @PROJECT_VERSION_MINOR@
+#define APP_VERSION_PATCH @PROJECT_VERSION_PATCH@
+#define APP_ARCH          "@APP_ARCH@"
+#define APP_OS_NAME       "@CMAKE_SYSTEM_NAME@"
+#define CPUID_SSE42_BIT   0x00100000
+#define CPUID_AVX_BIT     0x10000000
+#define CPUID_AVX2_BIT    0x00000020
+#define CPUID_AVX512_BIT  0x00010000
+#define APP_SIGN_APP3D    0x8D7A
+// clang-format on
