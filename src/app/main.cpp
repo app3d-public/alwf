@@ -1,16 +1,17 @@
 #include <acul/locales.hpp>
-#include <templates/app.hpp>
-#include <templates/about.hpp>
 #include <awin/window.hpp>
+#include <templates/about.hpp>
+#include <templates/app.hpp>
 #include "framework.hpp"
 #include "handlers.hpp"
+
 
 Enviroment env;
 
 int main()
 {
-    events::Manager ed;
-    locales::setup_i18n(locales::getUserLanguage());
+    acul::events::dispatcher ed;
+    acul::locales::setup_i18n(acul::locales::get_user_language());
     bindtextdomain("app", "locales");
     bind_textdomain_codeset("app", "UTF-8");
     textdomain("app");
@@ -18,7 +19,7 @@ int main()
     awin::initLibrary(&ed);
     {
         awin::CreationFlags flags = awin::CreationFlagsBits::snapped | awin::CreationFlagsBits::minimizebox |
-                                      awin::CreationFlagsBits::decorated;
+                                    awin::CreationFlagsBits::decorated;
         awin::Window window{"WebView Sample", 800, 600, flags};
         env.staticFolder = "public";
         env.routes["/"] = []() { return templates::app::render({_("mainpage")}); };

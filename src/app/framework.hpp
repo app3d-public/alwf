@@ -1,26 +1,26 @@
 #pragma once
 
+#include <acul/string/string.hpp>
 #include <awin/window.hpp>
 #include <rapidjson/document.h>
-#include <string>
 
 using EventHandler = std::function<void(const rapidjson::Value &)>;
-using RouteHandler = std::function<std::string()>;
+using RouteHandler = std::function<acul::string()>;
 
 struct FileResponse
 {
-    std::string path;
-    std::string mimeType;
-    std::string content;
+    acul::string path;
+    acul::string mimeType;
+    acul::string content;
 };
 
 extern struct Enviroment
 {
-    astl::hashmap<std::string, EventHandler> handlers;
-    astl::hashmap<std::string, RouteHandler> routes;
-    std::string staticFolder;
+    acul::hashmap<acul::string, EventHandler> handlers;
+    acul::hashmap<acul::string, RouteHandler> routes;
+    acul::string staticFolder;
 } env;
 
 void initWebView(awin::Window &window);
 
-bool loadStaticFile(const std::string &path, FileResponse &file);
+bool loadStaticFile(const acul::string &path, FileResponse &file);

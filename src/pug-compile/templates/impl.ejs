@@ -1,5 +1,4 @@
-#include <string>
-#include <sstream>
+#include <acul/string/sstream.hpp>
 <%_ if (variables.length > 0) { _%>
 #include "<%= namespace %>.hpp"
 <%_ } _%>
@@ -9,8 +8,8 @@ namespace templates
 {
     namespace <%= namespace %>
     {
-        std::string render(<% if (variables.length > 0) { %>const Data& data<% } %>) {
-            std::stringstream output;
+        acul::string render(<% if (variables.length > 0) { %>const Data& data<% } %>) {
+            acul::stringstream output;
             <%_ json.forEach(entry => { _%>
                 <%_ if (entry.type === "text") { _%>
                 output << "<%- entry.value.replace(/"/g, '\\"') %>";

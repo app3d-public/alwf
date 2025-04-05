@@ -1,28 +1,27 @@
 #include "framework.hpp"
 #include <acul/io/file.hpp>
-#include <filesystem>
 
-bool loadStaticFileFromDisk(const std::string &path, FileResponse &file)
+bool loadStaticFileFromDisk(const acul::string &path, FileResponse &file)
 {
-    astl::hashmap<std::string, std::string> mimeTypes{
+    acul::hashmap<acul::string, acul::string> mimeTypes{
         {"html", "text/html"}, {"css", "text/css"},  {"js", "text/javascript"}, {"json", "application/json"},
         {"jpg", "image/jpeg"}, {"png", "image/png"}, {"gif", "image/gif"},      {"svg", "image/svg+xml"}};
 
-    std::string extension = std::filesystem::path(path).extension().string();
+    acul::string extension = acul::io::get_extension(path);
     if (!extension.empty() && extension[0] == '.') extension.erase(0, 1);
     file.mimeType = mimeTypes.contains(extension) ? mimeTypes.at(extension) : "application/octet-stream";
     file.path = path;
 
-    astl::vector<char> buffer;
-    auto res = io::file::readBinary(astl::format("%s/%s", env.staticFolder.c_str(), path.c_str()), buffer);
-    if (res != io::file::ReadState::Success) return false;
+    acul::vector<char> buffer;
+    auto res = acul::io::file::read_binary(acul::format("%s/%s", env.staticFolder.c_str(), path.c_str()), buffer);
+    if (res != acul::io::file::op_state::success) return false;
     file.content.assign(buffer.begin(), buffer.end());
     return true;
 }
 
-bool loadStaticFile(const std::string &path, FileResponse &file)
+bool loadStaticFile(const acul::string &path, FileResponse &file)
 {
-    static astl::hashmap<std::string, FileResponse> files;
+    static acul::hashmap<acul::string, FileResponse> files;
     auto it = files.find(path);
     if (it != files.end())
     {

@@ -1,4 +1,4 @@
-#include <string>
+#include <acul/string/string.hpp>
 
 namespace templates
 {
@@ -12,6 +12,6 @@ namespace templates
         };
         <%_ } _%>
 
-        std::string render(<% if (variables.length > 0) { %>const Data& data<% } %>);
+        acul::string render(<% if (variables.length > 0) { %>const Data& data<% } %>);
     }
 }

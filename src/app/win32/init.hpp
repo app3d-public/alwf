@@ -1,6 +1,6 @@
 #pragma once
 #include <WebView2.h>
-#include <astl/memory.hpp>
+#include <acul/memory.hpp>
 #include <windows.h>
 #include <wrl.h>
 #include <wrl/client.h>
@@ -19,7 +19,7 @@ public:
     ULONG STDMETHODCALLTYPE Release() override
     {
         ULONG ref = InterlockedDecrement(&_refCount);
-        if (ref == 0) astl::release(this);
+        if (ref == 0) acul::release(this);
         return ref;
     }
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject) override;
@@ -42,7 +42,7 @@ public:
     ULONG STDMETHODCALLTYPE Release() override
     {
         ULONG ref = InterlockedDecrement(&_refCount);
-        if (ref == 0) astl::release(this);
+        if (ref == 0) acul::release(this);
         return ref;
     }
 
@@ -74,7 +74,7 @@ public:
     ULONG STDMETHODCALLTYPE Release() override
     {
         ULONG ref = InterlockedDecrement(&_refCount);
-        if (ref == 0) astl::release(this);
+        if (ref == 0) acul::release(this);
         return ref;
     }
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject) override;
@@ -97,7 +97,7 @@ public:
     ULONG STDMETHODCALLTYPE Release() override
     {
         ULONG ref = InterlockedDecrement(&_refCount);
-        if (ref == 0) astl::release(this);
+        if (ref == 0) acul::release(this);
         return ref;
     }
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject) override;

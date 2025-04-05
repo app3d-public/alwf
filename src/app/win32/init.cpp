@@ -1,5 +1,5 @@
 #include "init.hpp"
-#include <astl/string.hpp>
+#include <acul/string/utils.hpp>
 #include <rapidjson/document.h>
 #include "../framework.hpp"
 #include "platform.hpp"
@@ -16,12 +16,12 @@ HRESULT STDMETHODCALLTYPE WebMessageHandler::Invoke(ICoreWebView2 *sender,
     args->get_WebMessageAsJson(&message);
     if (message)
     {
-        auto u8message = astl::utf16_to_utf8(reinterpret_cast<const std::u16string::value_type *>(message));
+        auto u8message = acul::utf16_to_utf8(reinterpret_cast<const acul::u16string::value_type *>(message));
         rapidjson::Document doc;
         doc.Parse(u8message.c_str());
         if (!doc.HasParseError() && doc.HasMember("handler"))
         {
-            std::string handler = doc["handler"].GetString();
+            acul::string handler = doc["handler"].GetString();
             auto it = env.handlers.find(handler);
             if (it != env.handlers.end()) it->second(doc);
         }
@@ -43,15 +43,14 @@ HRESULT STDMETHODCALLTYPE WebMessageHandler::QueryInterface(REFIID riid, void **
     return E_NOINTERFACE;
 }
 
-std::string url_to_path(LPCWSTR url)
+acul::string url_to_path(LPCWSTR url)
 {
-    std::wstring wurl(url);
-    if (wurl.compare(0, 16, L"file://localhost") == 0)
-        return astl::utf16_to_utf8(std::u16string(wurl.begin() + 16, wurl.end()));
-    return astl::utf16_to_utf8(std::u16string(wurl.begin(), wurl.end()));
+    acul::wstring wurl(url);
+    size_t offset = wurl.compare(0, 16, L"file://localhost") == 0 ? 16 : 0;
+    return acul::utf16_to_utf8(acul::u16string(wurl.begin() + offset, wurl.end()));
 }
 
-void createWebResponse(const std::string &content, LPWSTR headers, Microsoft::WRL::ComPtr<IStream> &stream,
+void createWebResponse(const acul::string &content, LPWSTR headers, Microsoft::WRL::ComPtr<IStream> &stream,
                        Microsoft::WRL::ComPtr<ICoreWebView2WebResourceResponse> &response)
 {
     HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, content.size());
@@ -75,13 +74,13 @@ HRESULT STDMETHODCALLTYPE WebResourceRequestedHandler::Invoke(ICoreWebView2 *sen
     request->get_Uri(&uri);
 
     Microsoft::WRL::ComPtr<ICoreWebView2WebResourceResponse> response;
-    std::string path = url_to_path(uri);
+    acul::string path = url_to_path(uri);
     auto it = env.routes.find(path);
     if (it != env.routes.end())
     {
         Microsoft::WRL::ComPtr<IStream> htmlStream;
-        std::string html = it->second();
-        std::wstring headers = L"Content-Type: text/html\r\nContent-Length: " + std::to_wstring(html.size());
+        acul::string html = it->second();
+        acul::u16string headers = u"Content-Type: text/html\r\nContent-Length: " + acul::to_u16string(html.size());
         createWebResponse(html, (LPWSTR)headers.c_str(), htmlStream, response);
     }
     else
@@ -90,9 +89,9 @@ HRESULT STDMETHODCALLTYPE WebResourceRequestedHandler::Invoke(ICoreWebView2 *sen
         if (loadStaticFile(path, res))
         {
             Microsoft::WRL::ComPtr<IStream> stream;
-            std::string headers =
-                astl::format("Content-Type: %s\r\nContent-Length: %d", res.mimeType.c_str(), res.content.size());
-            std::u16string wHeaders = astl::utf8_to_utf16(headers);
+            acul::string headers =
+                acul::format("Content-Type: %s\r\nContent-Length: %d", res.mimeType.c_str(), res.content.size());
+            acul::u16string wHeaders = acul::utf8_to_utf16(headers);
             createWebResponse(res.content, (LPWSTR)wHeaders.c_str(), stream, response);
         }
         else
@@ -117,12 +116,12 @@ HRESULT STDMETHODCALLTYPE WebView2ControllerHandler::Invoke(HRESULT result, ICor
     EventRegistrationToken tokens[2];
 
     Microsoft::WRL::ComPtr<WebResourceRequestedHandler> handler;
-    handler.Attach(astl::alloc<WebResourceRequestedHandler>());
+    handler.Attach(acul::alloc<WebResourceRequestedHandler>());
     webView->AddWebResourceRequestedFilter(L"file://localhost/*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
     webView->add_WebResourceRequested(handler.Get(), &tokens[0]);
 
     Microsoft::WRL::ComPtr<WebMessageHandler> messageHandler;
-    messageHandler.Attach(astl::alloc<WebMessageHandler>());
+    messageHandler.Attach(acul::alloc<WebMessageHandler>());
     webView->add_WebMessageReceived(messageHandler.Get(), &tokens[1]);
 
     webView->Navigate(L"file://localhost/");
@@ -153,7 +152,7 @@ HRESULT STDMETHODCALLTYPE WebView2EnvHandler::Invoke(HRESULT result, ICoreWebVie
 {
     if (env)
     {
-        env->CreateCoreWebView2Controller(_hwnd, astl::alloc<WebView2ControllerHandler>(_hwnd));
+        env->CreateCoreWebView2Controller(_hwnd, acul::alloc<WebView2ControllerHandler>(_hwnd));
         platform.webViewEnvironment = env;
     }
     return S_OK;
@@ -192,5 +191,5 @@ void initWebView(awin::Window &window)
         return;
     }
     LPCWSTR cache = L"./cache";
-    createEnv(nullptr, cache, nullptr, astl::alloc<WebView2EnvHandler>(hwnd));
+    createEnv(nullptr, cache, nullptr, acul::alloc<WebView2EnvHandler>(hwnd));
 }
