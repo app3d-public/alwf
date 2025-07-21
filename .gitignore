@@ -6,5 +6,6 @@ lib/
 *.exe
 *.exe.*
 *.cppcheck
+/webview-app
 cache
 node_modules
