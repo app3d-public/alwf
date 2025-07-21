@@ -23,8 +23,8 @@ int main(int argc, char **argv)
 #ifdef _WIN32
     acul::events::dispatcher ed;
     awin::init_library(&ed);
-    awin::CreationFlags flags =
-        awin::CreationFlagsBits::snapped | awin::CreationFlagsBits::minimizebox | awin::CreationFlagsBits::decorated;
+    awin::WindowFlags flags =
+        awin::WindowFlagBits::snapped | awin::WindowFlagBits::minimize_box | awin::WindowFlagBits::decorated;
     awin::Window window{"WebView Sample", 800, 600, flags};
     awin::Window *pWindow = &window;
 #else

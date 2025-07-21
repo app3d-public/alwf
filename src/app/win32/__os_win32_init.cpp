@@ -1,8 +1,11 @@
+#include <acul/log.hpp>
 #include <acul/string/utils.hpp>
+#include <awin/native_access.hpp>
 #include <rapidjson/document.h>
 #include "../framework.hpp"
 #include "init.hpp"
 #include "platform.hpp"
+
 
 Win32PlatformData platform;
 
@@ -23,7 +26,10 @@ HRESULT STDMETHODCALLTYPE WebMessageHandler::Invoke(ICoreWebView2 *sender,
         {
             acul::string handler = doc["handler"].GetString();
             auto it = env.handlers.find(handler);
-            if (it != env.handlers.end()) it->second(doc);
+            if (it != env.handlers.end())
+                it->second(doc);
+            else
+                LOG_ERROR("Failed to find handler: %s", handler.c_str());
         }
     }
     CoTaskMemFree(message);
@@ -50,8 +56,8 @@ acul::string url_to_path(LPCWSTR url)
     return acul::utf16_to_utf8(acul::u16string(wurl.begin() + offset, wurl.end()));
 }
 
-void createWebResponse(const acul::string &content, LPWSTR headers, Microsoft::WRL::ComPtr<IStream> &stream,
-                       Microsoft::WRL::ComPtr<ICoreWebView2WebResourceResponse> &response)
+void create_web_response(const acul::string &content, LPWSTR headers, Microsoft::WRL::ComPtr<IStream> &stream,
+                         Microsoft::WRL::ComPtr<ICoreWebView2WebResourceResponse> &response)
 {
     HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, content.size());
     void *pMem = GlobalLock(hMem);
@@ -81,18 +87,18 @@ HRESULT STDMETHODCALLTYPE WebResourceRequestedHandler::Invoke(ICoreWebView2 *sen
         Microsoft::WRL::ComPtr<IStream> htmlStream;
         acul::string html = it->second();
         acul::u16string headers = u"Content-Type: text/html\r\nContent-Length: " + acul::to_u16string(html.size());
-        createWebResponse(html, (LPWSTR)headers.c_str(), htmlStream, response);
+        create_web_response(html, (LPWSTR)headers.c_str(), htmlStream, response);
     }
     else
     {
         FileResponse res;
-        if (loadStaticFile(path, res))
+        if (load_static_file(path, res))
         {
             Microsoft::WRL::ComPtr<IStream> stream;
             acul::string headers =
-                acul::format("Content-Type: %s\r\nContent-Length: %d", res.mimeType.c_str(), res.content.size());
+                acul::format("Content-Type: %s\r\nContent-Length: %d", res.mime_type.c_str(), res.content.size());
             acul::u16string wHeaders = acul::utf8_to_utf16(headers);
-            createWebResponse(res.content, (LPWSTR)wHeaders.c_str(), stream, response);
+            create_web_response(res.content, (LPWSTR)wHeaders.c_str(), stream, response);
         }
         else
             platform.webViewEnvironment->CreateWebResourceResponse(nullptr, 404, L"Not Found",
@@ -176,7 +182,7 @@ using CreateEnvFn = HRESULT(WINAPI *)(LPCWSTR, LPCWSTR, ICoreWebView2Environment
 
 void init_web_view(awin::Window *window)
 {
-    HWND hwnd = awin::native_access::get_hwnd(window);
+    HWND hwnd = awin::native_access::get_hwnd(*window);
     HMODULE hWebView2 = LoadLibraryExW(L"WebView2Loader.dll", NULL, LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
     if (!hWebView2)
     {

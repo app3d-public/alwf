@@ -5,13 +5,10 @@ project(webview-app
     DESCRIPTION "WebView Sample App")
 
 set(APP_NAME "webview-app")
-
-add_compile_options(-Wno-vla-extension)
-set(PREFIX_simd_DISABLE ON)
 include(cmake/utils.cmake)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-option(USE_ASAN "Use Address Sanitizer" ON)
+option(USE_ASAN "Use Address Sanitizer" OFF)
 set(USE_ASAN OFF)
 
 add_compile_options(
@@ -31,6 +28,7 @@ endif()
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -fexperimental-library")
     add_definitions(-D_LIBCPP_NO_VCRUNTIME)
+    add_compile_options(-Wno-vla-extension)
 
     if(CMAKE_BUILD_TYPE MATCHES Debug AND USE_ASAN)
         add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
