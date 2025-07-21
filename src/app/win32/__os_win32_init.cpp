@@ -1,7 +1,7 @@
-#include "init.hpp"
 #include <acul/string/utils.hpp>
 #include <rapidjson/document.h>
 #include "../framework.hpp"
+#include "init.hpp"
 #include "platform.hpp"
 
 Win32PlatformData platform;
@@ -174,9 +174,9 @@ HRESULT STDMETHODCALLTYPE WebView2EnvHandler::QueryInterface(REFIID riid, void *
 using CreateEnvFn = HRESULT(WINAPI *)(LPCWSTR, LPCWSTR, ICoreWebView2EnvironmentOptions *,
                                       ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler *);
 
-void initWebView(awin::Window &window)
+void init_web_view(awin::Window *window)
 {
-    HWND hwnd = awin::platform::native_access::getHWND(window);
+    HWND hwnd = awin::native_access::get_hwnd(window);
     HMODULE hWebView2 = LoadLibraryExW(L"WebView2Loader.dll", NULL, LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
     if (!hWebView2)
     {
@@ -184,12 +184,12 @@ void initWebView(awin::Window &window)
         return;
     }
 
-    auto createEnv = (CreateEnvFn)GetProcAddress(hWebView2, "CreateCoreWebView2EnvironmentWithOptions");
-    if (!createEnv)
+    auto create_env = (CreateEnvFn)GetProcAddress(hWebView2, "CreateCoreWebView2EnvironmentWithOptions");
+    if (!create_env)
     {
         MessageBoxW(hwnd, L"CreateCoreWebView2EnvironmentWithOptions not found", L"Error", MB_OK);
         return;
     }
     LPCWSTR cache = L"./cache";
-    createEnv(nullptr, cache, nullptr, acul::alloc<WebView2EnvHandler>(hwnd));
+    create_env(nullptr, cache, nullptr, acul::alloc<WebView2EnvHandler>(hwnd));
 }

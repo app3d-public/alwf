@@ -1,8 +1,9 @@
 include(CheckCXXSourceCompiles)
 
 # Check SIMD features
-
 function(check_compiler_define DEFINE RESULT)
+    set(OLD_REQ_FLAGS "${CMAKE_REQUIRED_FLAGS}")
+    set(CMAKE_REQUIRED_FLAGS "-march=native")
     CHECK_CXX_SOURCE_COMPILES("
     #include <limits.h>
     #ifndef ${DEFINE}
@@ -11,34 +12,32 @@ function(check_compiler_define DEFINE RESULT)
     int main() { return 0; }
     " ${RESULT})
     set(${RESULT} ${${RESULT}} PARENT_SCOPE)
+    set(CMAKE_REQUIRED_FLAGS "${OLD_REQ_FLAGS}")
+    set(${RESULT} ${${RESULT}} PARENT_SCOPE)
 endfunction()
 
-if(NOT PREFIX_simd_DISABLE)
-    check_compiler_define("__AVX__" SIMD_AVX)
-    check_compiler_define("__AVX2__" SIMD_AVX2)
-    check_compiler_define("__AVX512F__" SIMD_AVX512)
-    check_compiler_define("__SSE4_2__" SIMD_SSE42)
+check_compiler_define("__AVX__" SIMD_AVX)
+check_compiler_define("__AVX2__" SIMD_AVX2)
+check_compiler_define("__AVX512F__" SIMD_AVX512)
+check_compiler_define("__SSE4_2__" SIMD_SSE42)
 
-    set(PREFIX_simd "avx512;SIMD_AVX512" "avx2;SIMD_AVX2" "avx;SIMD_AVX" "sse42;SIMD_SSE42")
-    list(LENGTH PREFIX_simd list_length)
-    math(EXPR max_index "${list_length} - 1")
+set(SIMD_DEFAULT TRUE)
+set(PREFIX_simd "avx512;SIMD_AVX512" "avx2;SIMD_AVX2" "avx;SIMD_AVX" "sse42;SIMD_SSE42" "nosimd;SIMD_DEFAULT")
+list(LENGTH PREFIX_simd list_length)
+math(EXPR max_index "${list_length} - 1")
 
-    foreach(idx RANGE 0 ${max_index} 2)
-        math(EXPR next_idx "${idx} + 1")
-        list(GET PREFIX_simd ${idx} item1)
-        list(GET PREFIX_simd ${next_idx} item2)
+foreach(idx RANGE 0 ${max_index} 2)
+    math(EXPR next_idx "${idx} + 1")
+    list(GET PREFIX_simd ${idx} item1)
+    list(GET PREFIX_simd ${next_idx} item2)
 
-        if(NOT ${item2})
-            continue()
-        else()
-            set(APP_SIMD_ARCH ${item1})
-            break()
-        endif()
-    endforeach()
-
-else()
-    set(APP_SIMD_ARCH "nosimd")
-endif(NOT PREFIX_simd_DISABLE)
+    if(NOT ${item2})
+        continue()
+    else()
+        set(APP_SIMD_ARCH ${item1})
+        break()
+    endif()
+endforeach()
 
 set(PREFIX_os "win32;WIN32" "linux;LINUX" "osx;APPLE")
 
@@ -122,11 +121,7 @@ function(filter_files FILE_LIST OUT_LIST)
                         break()
                     endif()
                 endforeach()
-
-                if(NOT DEFINED ${FEATURE_VAR})
-                    message(SEND_ERROR "${PREFIX} features are not supported")
-                endif()
-            elseif(NOT DEFINED PREFIX_${PREFIX}_DISABLE)
+            else()
                 message(SEND_ERROR "Prefix does not match any pattern: ${PREFIX}")
             endif()
         else()
@@ -168,21 +163,100 @@ function(add_files target_name)
     set(SOURCE_FILES ${SOURCE_FILES} PARENT_SCOPE)
 endfunction()
 
-function(add_test_files TEST_LABEL TEST_NAME SOURCE_FILES INCLUDES LIBRARIES ENV_VAR)
+set(TEMPLATES_DIR ${CMAKE_SOURCE_DIR}/cmake/templates)
+
+function(add_test_files TEST_LABEL TEST_NAME TEST_SOURCE_FILE)
     set(TEST_FINAL_NAME "${TEST_LABEL}_${TEST_NAME}")
-    add_executable(${TEST_FINAL_NAME} ${SOURCE_FILES})
-    target_include_directories(${TEST_FINAL_NAME} PRIVATE ${INCLUDES})
+    set(MAIN_PATH ${CMAKE_BINARY_DIR}/tests/src/${TEST_FINAL_NAME}.cpp)
+    configure_file(${TEMPLATES_DIR}/test.cpp.in ${MAIN_PATH})
+    list(APPEND TEST_SOURCES ${MAIN_PATH} ${TEST_SOURCE_FILE})
+    add_executable(${TEST_FINAL_NAME} ${TEST_SOURCES})
+
+    target_compile_definitions(${TEST_FINAL_NAME} PRIVATE PROCESS_UNITTEST)
+
+    if(DEFINED TEST_INCLUDES)
+        target_include_directories(${TEST_FINAL_NAME} PRIVATE ${TEST_INCLUDES})
+    endif()
+
     add_test(NAME ${TEST_FINAL_NAME} COMMAND "${CMAKE_BINARY_DIR}/tests/${TEST_FINAL_NAME}" WORKING_DIRECTORY ${APP_LIB_DIR})
-    target_link_libraries(${TEST_FINAL_NAME} PRIVATE ${LIBRARIES})
+
+    if(DEFINED TEST_LIBRARIES)
+        target_link_libraries(${TEST_FINAL_NAME} PRIVATE ${TEST_LIBRARIES})
+    endif()
+
     set_tests_properties(${TEST_FINAL_NAME} PROPERTIES LABELS ${TEST_LABEL})
-    set_tests_properties(${TEST_FINAL_NAME} PROPERTIES ENVIRONMENT "${ENV_VAR}")
+
+    set(env_vars "")
+
+    if(DEFINED TEST_ENV)
+        list(APPEND env_vars ${TEST_ENV})
+    endif()
+
+    if(ENABLE_COVERAGE)
+        list(APPEND env_vars "LLVM_PROFILE_FILE=${CMAKE_BINARY_DIR}/tests/coverage/${TEST_FINAL_NAME}.profraw")
+        target_compile_options(${TEST_FINAL_NAME} PRIVATE -fno-inline)
+    endif()
+
+    if(env_vars)
+        set_tests_properties(${TEST_FINAL_NAME} PROPERTIES ENVIRONMENT "${env_vars}")
+    endif()
+
     set_target_properties(${TEST_FINAL_NAME}
         PROPERTIES
         CXX_STANDARD 23
         CXX_STANDARD_REQUIRED YES
         CXX_EXTENSIONS YES
     )
-endfunction(add_test_files)
+
+    list(APPEND TEST_${TEST_LABEL}_ALL_NAMES ${TEST_NAME})
+    set(TEST_${TEST_LABEL}_ALL_NAMES "${TEST_${TEST_LABEL}_ALL_NAMES}" PARENT_SCOPE)
+
+    list(APPEND TEST_${TEST_LABEL}_ALL_SOURCES ${TEST_SOURCE_FILE})
+    set(TEST_${TEST_LABEL}_ALL_SOURCES "${TEST_${TEST_LABEL}_ALL_SOURCES}" PARENT_SCOPE)
+endfunction()
+
+# Make app includes all tests
+function(add_test_coverage TEST_LABEL)
+    set(MAIN_PATH ${CMAKE_BINARY_DIR}/tests/src/${TEST_LABEL}_all.cpp)
+    file(WRITE ${MAIN_PATH} "")
+    set(SOURCE_FILES ${TEST_SOURCES})
+
+    set(TEST_SOURCE_LIST ${TEST_${TEST_LABEL}_ALL_SOURCES})
+
+    foreach(TEST_SOURCE IN LISTS TEST_SOURCE_LIST)
+        list(APPEND SOURCE_FILES ${TEST_SOURCE})
+    endforeach()
+
+    set(TEST_NAMES ${TEST_${TEST_LABEL}_ALL_NAMES})
+
+    foreach(TEST_NAME IN LISTS TEST_NAMES)
+        file(APPEND "${MAIN_PATH}" "void test_${TEST_NAME}();\n")
+    endforeach()
+
+    file(APPEND "${MAIN_PATH}" "\nint main()\n{\n")
+
+    foreach(TEST_NAME IN LISTS TEST_NAMES)
+        file(APPEND "${MAIN_PATH}" "test_${TEST_NAME}();\n")
+    endforeach()
+
+    file(APPEND "${MAIN_PATH}" "    return 0;\n}\n")
+
+    add_executable(${TEST_LABEL}_all ${MAIN_PATH} ${SOURCE_FILES})
+
+    target_compile_definitions(${TEST_LABEL}_all PRIVATE PROCESS_UNITTEST)
+    target_compile_options(${TEST_LABEL}_all PRIVATE -fno-inline)
+
+    if(DEFINED TEST_LIBRARIES)
+        target_link_libraries(${TEST_LABEL}_all PRIVATE ${TEST_LIBRARIES})
+    endif()
+
+    set_target_properties(${TEST_LABEL}_all
+        PROPERTIES
+        CXX_STANDARD 23
+        CXX_STANDARD_REQUIRED YES
+        CXX_EXTENSIONS YES
+    )
+endfunction()
 
 # Override project() to get project version
 cmake_policy(SET CMP0048 NEW)

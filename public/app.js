@@ -27,5 +27,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function sendMessage() {
-  window.chrome.webview.postMessage({ handler: 'btn_click', message: 'Button clicked' });
+    Framework.send({ handler: 'btn_click', message: 'Button clicked' });
 }

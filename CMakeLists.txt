@@ -54,11 +54,13 @@ endif()
 if(WIN32)
     add_definitions(-DWIN32_LEAN_AND_MEAN -DNOMINMAX -DWINVER=0x0A00)
 endif()
+
 set(ACUL_BUILD_MIN ON)
 add_subdirectory("modules/acul")
-add_subdirectory("modules/awin")
 
 if(WIN32)
+    add_subdirectory("modules/awin")
+
     if(DEFINED ENV{WEBVIEW2_SDK_PATH})
         include_directories("$ENV{WEBVIEW2_SDK_PATH}/build/native/include")
     else()
@@ -97,6 +99,7 @@ add_subdirectory(src/app/locales)
 list(APPEND DEPENDENT_TARGETS LOCALES)
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${GENERATED_SOURCES})
+
 if(WIN32 AND NOT CMAKE_BUILD_TYPE MATCHES Debug)
     set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE ON)
 endif()
@@ -123,9 +126,17 @@ endif(WIN32)
 add_dependencies(${PROJECT_NAME} ${DEPENDENT_TARGETS})
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(${PROJECT_NAME} PRIVATE ${ACUL_LIB_NAME} ${AWIN_LIB_NAME})
+target_link_libraries(${PROJECT_NAME} PRIVATE acul)
+
 if(WIN32)
-    target_link_libraries(${PROJECT_NAME} PRIVATE shlwapi)
+    target_link_libraries(${PROJECT_NAME} PRIVATE shlwapi awin)
+else()
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
+    pkg_check_modules(WebKit2 REQUIRED webkit2gtk-4.0)
+
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${GTK3_LIBRARIES} ${WebKit2_LIBRARIES})
+    target_include_directories(${PROJECT_NAME} PRIVATE ${GTK3_INCLUDE_DIRS} ${WebKit2_INCLUDE_DIRS})
 endif()
 
 set_target_properties(${PROJECT_NAME}
@@ -139,8 +150,8 @@ set_target_properties(${PROJECT_NAME}
 if(WIN32)
     # Manifest
     set(APP_MANIFEST_DEPS
-        ${ACUL_LIB_NAME}:${acul_VERSION}
-        ${AWIN_LIB_NAME}:${awin_VERSION}
+        acul:${acul_VERSION}
+        awin:${awin_VERSION}
         WebView2Loader:1.0.3065
     )
 
