@@ -1,0 +1,14 @@
+cmake_minimum_required(VERSION 3.17)
+project(hello_app
+    VERSION 0.0.1
+    LANGUAGES CXX C
+)
+
+set(ALWF_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/..)
+set(ALWF_PUBLIC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/public)
+set(ALWF_VIEWS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/views)
+set(ALWF_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(ALWF_ICON ${CMAKE_CURRENT_SOURCE_DIR}/assets/icon.ico)
+set(ALFW_LOCALES_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/locales)
+
+include(${ALWF_ROOT_DIR}/alwf.cmake)

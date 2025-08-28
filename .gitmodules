@@ -4,3 +4,6 @@
 [submodule "modules/awin"]
 	path = modules/awin
 	url = git@git.dev.lan:app3d/awin.git
+[submodule "cmake"]
+	path = cmake
+	url = git@git.dev.lan:app3d/acbt.git
