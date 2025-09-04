@@ -48,7 +48,6 @@ include(${ALWF_ROOT_DIR}/cmake/project.cmake)
 add_subdirectory(
     "${ALWF_ROOT_DIR}/modules/acul"
     "${CMAKE_CURRENT_BINARY_DIR}/alwf/acul"
-    EXCLUDE_FROM_ALL
 )
 
 if(WIN32)
@@ -69,32 +68,45 @@ endif()
 add_files(${PROJECT_NAME} RECURSE ${ALWF_SOURCE_DIR})
 add_files(${PROJECT_NAME} RECURSE ${CMAKE_CURRENT_LIST_DIR}/src)
 
-# Views
-set(PUG_COMPILER_DIR "${CMAKE_CURRENT_LIST_DIR}/src/pug-compile")
-set(GENERATED_DIR "${CMAKE_BINARY_DIR}/templates")
-
-file(GLOB PUG_FILES "${ALWF_VIEWS_DIR}/*.pug")
-file(GLOB PUG_COMPILER_FILES "${PUG_COMPILER_DIR}/*" "${PUG_COMPILER_DIR}/templates/*")
-set(GENERATED_SOURCES "")
-
-foreach(PUG_FILE ${PUG_FILES})
-    get_filename_component(PUG_NAME ${PUG_FILE} NAME_WE)
-    set(GENERATED_SOURCE "${GENERATED_DIR}/${PUG_NAME}.cpp")
-    add_custom_command(
-        OUTPUT ${GENERATED_HEADER} ${GENERATED_SOURCE}
-        COMMAND npm start -- ${PUG_FILE} ${GENERATED_DIR}
-        WORKING_DIRECTORY ${PUG_COMPILER_DIR}
-        DEPENDS ${PUG_FILE} ${PUG_COMPILER_FILES}
-        COMMENT "Compiling template: ${PUG_FILE}"
-    )
-    list(APPEND GENERATED_SOURCES ${GENERATED_SOURCE} ${GENERATED_HEADER})
-endforeach()
-
-add_custom_target(generate_pug_templates
-    DEPENDS ${GENERATED_SOURCES}
+add_subdirectory(
+    "${ALWF_ROOT_DIR}/modules/ahtt"
+    "${CMAKE_CURRENT_BINARY_DIR}/alwf/ahtt"
+    EXCLUDE_FROM_ALL
 )
 
-add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${GENERATED_SOURCES})
+# Views
+set(GENERATED_DIR "${CMAKE_BINARY_DIR}/templates")
+file(GLOB AT_FILES "${ALWF_VIEWS_DIR}/*.at")
+set(GENERATED_HEADERS)
+
+foreach(AT_FILE ${AT_FILES})
+    get_filename_component(AT_NAME "${AT_FILE}" NAME_WE)
+    set(OUT_HEADER "${GENERATED_DIR}/${AT_NAME}.hpp")
+    set(DEP_FILE "${GENERATED_DIR}/${AT_NAME}.dep")
+    add_custom_command(
+        OUTPUT "${OUT_HEADER}"
+        COMMAND $<TARGET_FILE:ahtt>
+                -i "${AT_FILE}"
+                -o "${OUT_HEADER}"
+                --base-dir "${ALWF_VIEWS_DIR}"
+                --dep-file "${DEP_FILE}"
+        DEPENDS ahtt ${AT_FILE}
+        DEPFILE "${DEP_FILE}"
+        WORKING_DIRECTORY ${APP_LIB_DIR}
+        VERBATIM
+    )
+
+    list(APPEND GENERATED_HEADERS "${OUT_HEADER}")
+endforeach()
+
+
+add_custom_target(generate_at_templates
+    DEPENDS ${GENERATED_HEADERS}
+)
+list(APPEND DEPENDENT_TARGETS generate_at_templates)
+
+string(TOUPPER "${PROJECT_NAME}" SRC_PREFIX)
+add_executable(${PROJECT_NAME} ${${SRC_PREFIX}_SRC})
 
 if(WIN32 AND NOT CMAKE_BUILD_TYPE MATCHES Debug)
     set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE ON)

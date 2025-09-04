@@ -7,3 +7,6 @@
 [submodule "cmake"]
 	path = cmake
 	url = git@git.dev.lan:app3d/acbt.git
+[submodule "modules/ahtt"]
+	path = modules/ahtt
+	url = git@git.dev.lan:app3d/ahtt.git

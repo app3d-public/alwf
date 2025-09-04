@@ -1,0 +1,10 @@
+extends layouts/layout.at
+
+block head
+  meta(name="viewport" content="width=device-width, initial-scale=1")
+
+block content
+  p Hello from index page!
+  ul
+    li Item 1
+    li Item 2

@@ -1,0 +1,6 @@
+block variables
+  - int page_id = 0;
+  - page_id = 2;
+
+nav.nav
+  a.#{page_id}(href="#get-started") Get started

@@ -23,6 +23,10 @@ You can handle events from JavaScript, send messages to the frontend, and open e
 - Sending messages to JS
 - Rapid integration via CMake and npm
 
+## SIMD Support
+Applications built with **alwf** are compiled without SIMD support.  
+The `acul-simd` module may still be built as part of the framework, but it is only required for internal tooling and is not used by alwf applications themselves.  
+
 ## Building
 ### Supported compilers:
 - GNU GCC
@@ -48,6 +52,7 @@ The following dependencies are included as git submodules and must be checked ou
 - [acbt](https://git.homedatasrv.ru/app3d/acbt)
 - [acul](https://git.homedatasrv.ru/app3d/acul)
 - [awin](https://git.homedatasrv.ru/app3d/awin) Microsoft Windows only
+- [ahtt](https://git.homedatasrv.ru/app3d/ahtt)
 
 ### Quick start
 Follow these steps to scaffold and build a fresh app powered by **alwf**.
@@ -100,7 +105,7 @@ An example project is available in [`example/`](example/) folder
 <details>
   <summary>Screenshots</summary>
   <a href="example/screenshots/image.png">
-    <img src="example/screenshots/image.png" alt="screenshot" width="350"/>
+    <img src="./example/screenshots/image.png" alt="screenshot" width="350"/>
   </a>
 </details>
 
