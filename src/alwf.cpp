@@ -114,8 +114,8 @@ namespace alwf
         while (w && !w->ready_to_close()) awin::wait_events();
         if (w) w->destroy();
 #else
-        g_signal_connect(rt.window, "destroy", G_CALLBACK(gtk_main_quit), nullptr);
-        gtk_widget_show_all(rt.window);
+        g_signal_connect(rt->window, "destroy", G_CALLBACK(gtk_main_quit), nullptr);
+        gtk_widget_show_all(rt->window);
         gtk_main();
 #endif
     }
@@ -124,7 +124,9 @@ namespace alwf
     {
         LOG_INFO("Shutdown alwf");
         destroy_platform();
+#ifdef _WIN32
         awin::destroy_library();
+#endif
         acul::release(rt);
     }
 } // namespace alwf

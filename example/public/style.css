@@ -19,6 +19,9 @@ body {
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   color: var(--ink);
   background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 header {
@@ -76,6 +79,7 @@ footer {
   text-align: center;
   padding: 28px 16px 36px;
   color: var(--muted);
+  margin-top: auto;
 }
 
 /* content */
@@ -145,92 +149,92 @@ footer {
 }
 
 .center-cta {
-    display: flex;
-    justify-content: center;
-    margin-top: 28px;
+  display: flex;
+  justify-content: center;
+  margin-top: 28px;
 }
 
 .center-cta .btn svg {
-    margin-left: 8px;
+  margin-left: 8px;
 }
 
 .features-wrap {
-    background: #f4f6fa;
-    padding: 25px 20px 25px;
+  background: #f4f6fa;
+  padding: 25px 20px 25px;
 }
 
 .features {
-    max-width: 1200px;
-    margin: 0 auto;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .features h3.title {
-    text-align: center;
-    font-size: clamp(1.8rem, 3vw, 2.4rem);
-    margin: 0 0 40px;
+  text-align: center;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  margin: 0 0 40px;
 }
 
 .grid {
-    display: grid;
-    gap: 32px;
+  display: grid;
+  gap: 32px;
 }
 
 @media (min-width: 560px) {
-    .grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (min-width: 920px) {
-    .grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .feat {
-    text-align: center;
-    padding: 6px 12px;
+  text-align: center;
+  padding: 6px 12px;
 }
 
 .iconbox {
-    width: 56px;
-    height: 56px;
-    margin: 0 auto 14px;
-    border-radius: 4px;
-    background: #eef2ff;
-    color: #2563eb;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 14px;
+  border-radius: 4px;
+  background: #eef2ff;
+  color: #2563eb;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .iconbox svg {
-    width: 24px;
-    height: 24px;
-    stroke: currentColor;
-    fill: none;
-    display: block;
-    overflow: visible;
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  fill: none;
+  display: block;
+  overflow: visible;
 }
 
 .feat h4 {
-    margin: 8px 0 6px;
-    font-size: 22px;
+  margin: 8px 0 6px;
+  font-size: 22px;
 }
 
 .feat p {
-    margin: 0;
-    color: #64748b;
+  margin: 0;
+  color: #64748b;
 }
 
 .feat p svg.swap {
-    width: 14px;
-    height: 14px;
-    display: inline-block;
-    overflow: visible;
-    vertical-align: -2px;
-    margin: 0 6px;
-    stroke: currentColor;
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+  overflow: visible;
+  vertical-align: -2px;
+  margin: 0 6px;
+  stroke: currentColor;
 }
 
 /* ===== API Demo ===== */
@@ -265,7 +269,7 @@ footer {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: 0 1px 0 rgba(0,0,0,.02);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .02);
 }
 
 .card-head {
@@ -281,7 +285,11 @@ footer {
   font-size: 20px;
 }
 
-.card-head h3 svg { width: 20px; height: 20px; stroke: currentColor; }
+.card-head h3 svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+}
 
 .card-head .desc {
   margin: 0;
@@ -312,14 +320,19 @@ footer {
   transition: border-color .15s ease, box-shadow .15s ease;
 }
 
-#api-input::placeholder { color: #98a2b3; }
+#api-input::placeholder {
+  color: #98a2b3;
+}
 
 #api-input:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
 }
 
-#api-send[disabled] { opacity: .6; cursor: not-allowed; }
+#api-send[disabled] {
+  opacity: .6;
+  cursor: not-allowed;
+}
 
 .log {
   display: grid;

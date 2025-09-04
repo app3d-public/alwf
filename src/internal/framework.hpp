@@ -14,7 +14,7 @@ namespace alwf
 {
     void init_web_view(PLATFORM_WINDOW *window);
     void destroy_platform();
-    void on_resize(awin::Window *window, acul::point2D<i32> size);
+    void on_resize(PLATFORM_WINDOW *window, acul::point2D<i32> size);
     void on_move();
 
     struct FileResponse

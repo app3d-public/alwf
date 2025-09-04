@@ -104,8 +104,11 @@ An example project is available in [`example/`](example/) folder
 
 <details>
   <summary>Screenshots</summary>
-  <a href="example/screenshots/image.png">
-    <img src="./example/screenshots/image.png" alt="screenshot" width="350"/>
+  <a href="example/screenshots/windows-root.png">
+    <img src="./example/screenshots//windows-root.png" alt="screenshot" width="350"/>
+  </a>
+  <a href="example/screenshots/linux-api.png">
+    <img src="./example/screenshots/linux-api.png" alt="screenshot" width="350"/>
   </a>
 </details>
 
