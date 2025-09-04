@@ -1,6 +1,19 @@
 block variables
   - int page_id = 0;
-  - page_id = 2;
-
-nav.nav
-  a.#{page_id}(href="#get-started") Get started
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title Hello App
+    link(rel="stylesheet" href="style.css")
+    block head
+  body
+    header
+      h1 Hello App
+      .spacer
+      nav.nav
+        a.#{page_id == 0 ? "active" : ""}(href="/") Get started
+        a.#{page_id == 1 ? "active" : ""}(href="/api") API Demo
+    block main
+    footer © 2025 Hello App — Built with alwf

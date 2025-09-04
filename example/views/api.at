@@ -1,0 +1,47 @@
+extends layouts/layout.at
+
+block variables
+  - int page_id = 1;
+
+block head
+    script(src="alwf.js")
+    script(src="api.js")
+
+block main
+  main#api
+    section.api-hero
+      h2 API Communication Demo
+      p.lead
+        | Experience real-time frontend ↔ backend communication using
+        |  alwf's message handling system.
+
+    section.api-content
+      .card
+        .card-head
+          h3
+            svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+              path(d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z")
+              path(d="m21.854 2.147-10.94 10.939")
+            |  Send Message to Backend
+          p.desc Type a message to send to the alwf backend handler. The response will appear in the log below.
+
+        .card-body
+          form#send-form(action="javascript:void(0)")
+            .row
+              input#api-input(type="text" placeholder="Enter your message..." autocomplete="off")
+              button#api-send.btn.primary(type="submit" disabled)
+                svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+                  path(d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z")
+                  path(d="m21.854 2.147-10.94 10.939")
+                |  Send
+
+      .card
+        .card-head
+          h3 Message Log
+          p.desc Real-time communication between frontend and backend
+        .card-body
+          .log#api-log

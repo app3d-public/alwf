@@ -2,4 +2,4 @@
 
 #include <rapidjson/document.h>
 
-void test_message(const rapidjson::Value &req);
+void api_message(const rapidjson::Value &req);

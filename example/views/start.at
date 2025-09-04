@@ -1,0 +1,76 @@
+extends layouts/layout.at
+block main
+  main#get-started
+    section.hero
+        h2 Hello App
+        p.
+          A demonstration of the alwf framework's capabilities.
+          Explore cross-platform development made simple and efficient.
+
+        .cta
+          a.btn.primary(href="#features") Learn More
+          a.btn(href="https://git.homedatasrv.ru/app3d/alwf" target="_blank" rel="noreferrer noopener")
+            svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" aria-hidden="true")
+              path(d="M15 3h6v6")
+              path(d="M10 14 21 3")
+              path(d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6")
+            | Open Project Page
+  section.features-wrap#features
+      .features
+        h3.title Why Choose alwf?
+        .grid
+          article.feat
+            .iconbox
+              svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+                path(d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z")
+                path(d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65")
+                path(d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65")
+            h4 Cross-Platform
+            p Windows & Linux support
+
+          article.feat
+            .iconbox
+              svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+                path(d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z")
+            h4 Lightweight
+            p Optimized for small apps
+
+          article.feat
+            .iconbox
+              svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+                circle(cx="12" cy="12" r="10")
+                path(d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20")
+                path(d="M2 12h20")
+            h4 Multi-Page
+            p Built-in routing system
+
+          article.feat
+            .iconbox
+              svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+                polyline(points="16 18 22 12 16 6")
+                polyline(points="8 6 2 12 8 18")
+            h4 JavaScript API
+            p
+              | Frontend
+              svg.swap(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+                polyline(points="17 11 21 7 17 3")
+                line(x1="21" y1="7" x2="9" y2="7")
+                polyline(points="7 21 3 17 7 13")
+                line(x1="15" y1="17" x2="3" y2="17")
+              |  Backend communication
+
+        .center-cta
+          a.btn(href="/api")
+            | Try API Demo
+            svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+              path(d="M5 12h14")
+              path(d="m12 5 7 7-7 7")

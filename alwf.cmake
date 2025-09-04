@@ -146,7 +146,7 @@ if(WIN32)
         add_custom_command(
             OUTPUT ${APP_RESOURCE}
             COMMAND ${CMAKE_RC_COMPILER} ${RES_SRC} -O coff -o ${APP_RESOURCE}
-            DEPENDS ${RES_SRC}
+            DEPENDS ${RES_SRC} ${ALWF_ICON}
             COMMENT "Generate resource: ${APP_RESOURCE}")
 
         add_custom_target(WIN_RESOURCES DEPENDS ${APP_RESOURCE})
