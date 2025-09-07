@@ -1,5 +1,6 @@
-
-include(${ALWF_ROOT_DIR}/cmake/utils.cmake)
+if(NOT DEFINED ACBT_LOADED)
+    include(${ALWF_ROOT_DIR}/cmake/utils.cmake)
+endif()
 
 set(APP_NAME ${ALWF_APP_NAME})
 
@@ -44,11 +45,16 @@ if(WIN32)
     add_definitions(-DWIN32_LEAN_AND_MEAN -DNOMINMAX -DWINVER=0x0A00)
 endif()
 
-include(${ALWF_ROOT_DIR}/cmake/project.cmake)
-add_subdirectory(
-    "${ALWF_ROOT_DIR}/modules/acul"
-    "${CMAKE_CURRENT_BINARY_DIR}/alwf/acul"
-)
+if(NOT DEFINED ACBT_PROJECT_LOADED)
+    include(${ALWF_ROOT_DIR}/cmake/project.cmake)
+endif()
+
+if(NOT TARGET acul)
+    add_subdirectory(
+        "${ALWF_ROOT_DIR}/modules/acul"
+        "${CMAKE_CURRENT_BINARY_DIR}/alwf/acul"
+    )
+endif()
 
 if(WIN32)
     set(ENABLE_AGRB OFF)
@@ -86,10 +92,10 @@ foreach(AT_FILE ${AT_FILES})
     add_custom_command(
         OUTPUT "${OUT_HEADER}"
         COMMAND $<TARGET_FILE:ahtt>
-                -i "${AT_FILE}"
-                -o "${OUT_HEADER}"
-                --base-dir "${ALWF_VIEWS_DIR}"
-                --dep-file "${DEP_FILE}"
+        -i "${AT_FILE}"
+        -o "${OUT_HEADER}"
+        --base-dir "${ALWF_VIEWS_DIR}"
+        --dep-file "${DEP_FILE}"
         DEPENDS ahtt ${AT_FILE}
         DEPFILE "${DEP_FILE}"
         WORKING_DIRECTORY ${APP_LIB_DIR}
@@ -99,13 +105,12 @@ foreach(AT_FILE ${AT_FILES})
     list(APPEND GENERATED_HEADERS "${OUT_HEADER}")
 endforeach()
 
-
 add_custom_target(generate_at_templates
     DEPENDS ${GENERATED_HEADERS}
 )
 list(APPEND DEPENDENT_TARGETS generate_at_templates)
 
-string(TOUPPER "${PROJECT_NAME}" SRC_PREFIX)
+normalize_variable_name(PROJECT_NAME SRC_PREFIX)
 add_executable(${PROJECT_NAME} ${${SRC_PREFIX}_SRC})
 
 if(WIN32 AND NOT CMAKE_BUILD_TYPE MATCHES Debug)
@@ -137,7 +142,7 @@ endif()
 
 # Resources
 if(WIN32)
-    if(${CMAKE_BUILD_TYPE} MATCHES Release)
+    if(${CMAKE_BUILD_TYPE} MATCHES Release AND DEFINED ALWF_ICON)
         set(RES_SRC ${CMAKE_BINARY_DIR}/resources/app.rc)
         set(APP_RESOURCE ${CMAKE_BINARY_DIR}/resources/app.res)
         set(ICON_PATH ${ALWF_ICON})
@@ -156,17 +161,19 @@ if(WIN32)
 endif(WIN32)
 
 # Frontend
-set(ALFW_JS_SRC "${CMAKE_CURRENT_LIST_DIR}/src/alwf.js")
-set(ALFW_JS_DST "${ALWF_PUBLIC_DIR}/alwf.js")
+if(NOT DEFINED ALWF_FRONTEND_DISABLE)
+    set(ALFW_JS_SRC "${CMAKE_CURRENT_LIST_DIR}/src/alwf.js")
+    set(ALFW_JS_DST "${ALWF_PUBLIC_DIR}/alwf.js")
 
-add_custom_command(
-    OUTPUT "${ALFW_JS_DST}"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${ALFW_JS_SRC}" "${ALFW_JS_DST}"
-    DEPENDS "${ALFW_JS_SRC}"
-    COMMENT "Copy alwf.js -> ${ALFW_JS_DST}"
-)
-add_custom_target(copy_alwf_js DEPENDS "${ALFW_JS_DST}")
-list(APPEND DEPENDENT_TARGETS copy_alwf_js)
+    add_custom_command(
+        OUTPUT "${ALFW_JS_DST}"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${ALFW_JS_SRC}" "${ALFW_JS_DST}"
+        DEPENDS "${ALFW_JS_SRC}"
+        COMMENT "Copy alwf.js -> ${ALFW_JS_DST}"
+    )
+    add_custom_target(copy_alwf_js DEPENDS "${ALFW_JS_DST}")
+    list(APPEND DEPENDENT_TARGETS copy_alwf_js)
+endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${PROJECT_NAME} PRIVATE ${ALWF_ROOT_DIR}/include)
@@ -205,8 +212,8 @@ if(WIN32)
     if(EXISTS "${_WV2_DLL}")
         execute_process(
             COMMAND powershell -NoProfile -ExecutionPolicy Bypass
-            "(Get-Item '${_WV2_DLL}').VersionInfo.ProductVersion"
-            OUTPUT_VARIABLE WebView2_LoaderVersion
+            "(Get-Item '${_WV2_DLL}').VersionInfo.FileVersion"
+            OUTPUT_VARIABLE WEBVIEW2_LOADER_VERSION
             OUTPUT_STRIP_TRAILING_WHITESPACE
             ERROR_QUIET
         )
@@ -225,9 +232,10 @@ if(WIN32)
     set(APP_MANIFEST_DEPS
         libacul:${acul_VERSION}
         libawin:${awin_VERSION}
-        WebView2Loader:${WebView2_LoaderVersion}
+        WebView2Loader:${WEBVIEW2_LOADER_VERSION}
+        ${ALWF_MANIFEST_DEPS}
     )
-
+    gen_manifest_lib(WebView2Loader ${WEBVIEW2_LOADER_VERSION})
     gen_manifest_app(${PROJECT_NAME} ${PROJECT_VERSION} ${APP_MANIFEST_DEPS})
     gen_app_config()
 endif()

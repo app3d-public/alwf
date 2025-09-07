@@ -129,4 +129,25 @@ namespace alwf
 #endif
         acul::release(rt);
     }
+
+    void parse_request_url(const acul::string &uri, Request &request)
+    {
+        acul::string path;
+        acul::string query;
+
+        if (auto qpos = uri.find('?'); qpos != acul::string::npos)
+        {
+            path = uri.substr(0, qpos);
+            query = uri.substr(qpos + 1);
+        }
+        else
+        {
+            path = uri;
+            query = "";
+        }
+
+        request.path = std::move(path);
+        request.query = std::move(query);
+    }
+
 } // namespace alwf

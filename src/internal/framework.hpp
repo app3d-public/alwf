@@ -17,12 +17,7 @@ namespace alwf
     void on_resize(PLATFORM_WINDOW *window, acul::point2D<i32> size);
     void on_move();
 
-    struct FileResponse
-    {
-        acul::string path;
-        acul::string mime_type;
-        acul::string content;
-    };
+    IResponse *load_static_file(const acul::string &path);
 
-    bool load_static_file(const acul::string &path, FileResponse &file);
+    void parse_request_url(const acul::string &uri, Request &request);
 } // namespace alwf
