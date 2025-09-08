@@ -113,10 +113,10 @@ An example project is available in [`example/`](example/) folder
 
 <details>
   <summary>Screenshots</summary>
-  <a href="/app3d-public/alwf/raw/branch/master/example/screenshots/windows-root.png">
+  <a href="https://github.com/app3d-public/alwf/blob/master/example/screenshots/windows-root.png">
     <img src="./example/screenshots/windows-root.png" alt="screenshot" width="350"/>
   </a>
-  <a href="/app3d-public/alwf/raw/branch/master/example/screenshots/linux-api.png">
+  <a href="https://github.com/app3d-public/alwf/blob/master/example/screenshots/linux-api.png">
     <img src="./example/screenshots/linux-api.png" alt="screenshot" width="350"/>
   </a>
 </details>
