@@ -5,6 +5,8 @@
 
 namespace alwf
 {
+    Context *ctx = nullptr;
+
     enum class RespKind
     {
         Text,
@@ -33,12 +35,13 @@ namespace alwf
 
     IResponse *load_static_file_from_disk(const acul::string &path)
     {
+        assert(ctx && "Context is not initialized");
         acul::string ext = acul::io::get_extension(path);
         if (!ext.empty() && ext[0] == '.') ext.erase(0, 1);
         ext = acul::to_lower(ext);
 
         acul::vector<char> buffer;
-        const acul::string full = acul::format("%s/%s", alwf::env.static_folder.c_str(), path.c_str());
+        const acul::string full = acul::format("%s/%s", ctx->static_folder, path.c_str());
         auto ok = acul::io::file::read_binary(full, buffer) == acul::io::file::op_state::success;
         if (!ok) return nullptr;
 
@@ -63,8 +66,8 @@ namespace alwf
 
     IResponse *load_static_file(const acul::string &path)
     {
-        static acul::hashmap<acul::string, acul::unique_ptr<IResponse>> cache;
-
+        assert(ctx && "Context is not initialized");
+        auto &cache = ctx->file_cache;
         if (auto it = cache.find(path); it != cache.end()) return it->second.get();
 
         IResponse *raw = load_static_file_from_disk(path);

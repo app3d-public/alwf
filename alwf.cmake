@@ -89,9 +89,12 @@ foreach(AT_FILE ${AT_FILES})
     get_filename_component(AT_NAME "${AT_FILE}" NAME_WE)
     set(OUT_HEADER "${GENERATED_DIR}/${AT_NAME}.hpp")
     set(DEP_FILE "${GENERATED_DIR}/${AT_NAME}.dep")
+    if (UNIX)
+        set(LD_PREFIX LD_LIBRARY_PATH=${APP_LIB_DIR})
+    endif()
     add_custom_command(
         OUTPUT "${OUT_HEADER}"
-        COMMAND $<TARGET_FILE:ahtt>
+        COMMAND ${LD_PREFIX} $<TARGET_FILE:ahtt>
         -i "${AT_FILE}"
         -o "${OUT_HEADER}"
         --base-dir "${ALWF_VIEWS_DIR}"

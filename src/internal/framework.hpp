@@ -20,4 +20,14 @@ namespace alwf
     IResponse *load_static_file(const acul::string &path);
 
     void parse_request_url(const acul::string &uri, Request &request);
+
+    using FileCache = acul::hashmap<acul::string, acul::unique_ptr<IResponse>>;
+
+    extern struct Context
+    {
+        const char *static_folder;
+        Router *router;
+        HandlerRouter *handler_router;
+        FileCache file_cache;
+    } *ctx;
 } // namespace alwf

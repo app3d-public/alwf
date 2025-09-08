@@ -6,8 +6,6 @@
 
 namespace alwf
 {
-    Enviroment env;
-
     static struct Runtime
     {
         PLATFORM_WINDOW *window = nullptr;
@@ -94,6 +92,11 @@ namespace alwf
             rt->logsvc->default_logger = logger;
         }
 
+        ctx = acul::alloc<Context>();
+        ctx->router = opt.router;
+        ctx->handler_router = opt.handler_router;
+        ctx->static_folder = opt.static_folder;
+
         LOG_INFO("Setup i18n");
         setup_i18n(opt);
 
@@ -128,6 +131,8 @@ namespace alwf
         awin::destroy_library();
 #endif
         acul::release(rt);
+        acul::release(ctx);
+        ctx = nullptr;
     }
 
     void parse_request_url(const acul::string &uri, Request &request)

@@ -141,12 +141,7 @@ namespace alwf
         route_store del;
     };
 
-    extern struct Enviroment
-    {
-        acul::hashmap<acul::string, EventHandler> handlers;
-        Router router;
-        acul::string static_folder;
-    } env;
+    using HandlerRouter = acul::hashmap<acul::string, EventHandler>;
 
     struct AlwfWindowFlagBits
     {
@@ -177,6 +172,13 @@ namespace alwf
 
         // Log
         const char *log_file = nullptr;
+
+        // Static files
+        const char *static_folder = nullptr;
+
+        // Navigation
+        Router *router = nullptr;
+        HandlerRouter *handler_router = nullptr;
     };
 
     void init(const Options &opt);
