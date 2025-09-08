@@ -52,16 +52,16 @@ namespace alwf
         if (mi && mi->kind == RespKind::Json)
         {
             acul::string s(buffer.data(), buffer.size());
-            return acul::alloc<JSONResponse>(std::move(s), 200, ct);
+            return acul::alloc<JSONResponse>(std::move(s), ct);
         }
 
         if (mi && mi->kind == RespKind::Text)
         {
             acul::string s(buffer.data(), buffer.size());
-            return acul::alloc<TextResponse>(std::move(s), 200, ct);
+            return acul::alloc<TextResponse>(std::move(s), ct);
         }
 
-        return acul::alloc<BinaryResponse>(std::move(buffer), 200, ct);
+        return acul::alloc<BinaryResponse>(std::move(buffer), ct);
     }
 
     IResponse *load_static_file(const acul::string &path)

@@ -9,7 +9,7 @@ The goal of alwf is not to provide a full-scale application platform, but to mak
 
 With alwf, you can create applications where the UI is written in HTML/CSS/JS and the logic is implemented in C++.  
 It offers a cross-platform API for messaging between the frontend and the backend, supports multi-page routing and event handling.  
-Pug templates can be precompiled into C++ code at build time, allowing you to bundle your UI directly into the executable. 
+Templates can be precompiled into C++ code at build time, allowing you to bundle your UI directly into the executable. 
 You can handle events from JavaScript, send messages to the frontend, and open external resources via the system browser.  
 
 ## Features
@@ -18,14 +18,23 @@ You can handle events from JavaScript, send messages to the frontend, and open e
 - Cross-platform frontend-backend messaging
 - Routing and external link handling
 - Pug template precompilation into C++
-- Image Stream transfer between C++ and JS
 - Event handler registration from JS
 - Sending messages to JS
-- Rapid integration via CMake and npm
+- Rapid integration via CMake
 
-## SIMD Support
+## Limitations
+### SIMD Support
 Applications built with **alwf** are compiled without SIMD support.  
-The `acul-simd` module may still be built as part of the framework, but it is only required for internal tooling and is not used by alwf applications themselves.  
+The `acul-simd` module may still be built as part of the framework, but it is only required for internal tooling and is not used by alwf applications themselves.
+
+### POST multipart Payload
+On Windows there is a known issue with multipart payloads in WebView2  
+([MicrosoftEdge/WebView2Feedback#2162](https://github.com/MicrosoftEdge/WebView2Feedback/issues/2162)).  
+For the sake of cross-platform consistency, multipart payloads are not supported in alwf.
+
+### Response status codes
+By design, GTK WebView on Linux does not support setting HTTP response status codes.  
+To unify the cross-platform interface, status codes are not set in alwf responses.
 
 ## Building
 ### Supported compilers:
@@ -59,7 +68,7 @@ Follow these steps to scaffold and build a fresh app powered by **alwf**.
 
 #### Initialize tooling
 Run the setup script in the `alwf` repository.  
-This pulls submodules and initializes the npm-based Pug compiler.
+This pulls submodules and initializes the template compiler.
 
 ```sh
 sh setup.sh

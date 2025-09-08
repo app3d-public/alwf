@@ -20,6 +20,7 @@ namespace alwf
     HRESULT STDMETHODCALLTYPE WebMessageHandler::Invoke(ICoreWebView2 *sender,
                                                         ICoreWebView2WebMessageReceivedEventArgs *args)
     {
+        assert(ctx && ctx->handler_router);
         LPWSTR message = nullptr;
         args->get_WebMessageAsJson(&message);
         if (message)
@@ -30,8 +31,8 @@ namespace alwf
             if (!doc.HasParseError() && doc.HasMember("handler"))
             {
                 acul::string handler = doc["handler"].GetString();
-                auto it = env.handlers.find(handler);
-                if (it != env.handlers.end()) it->second(doc);
+                auto it = ctx->handler_router->find(handler);
+                if (it != ctx->handler_router->end()) it->second(doc);
             }
         }
         CoTaskMemFree(message);
@@ -69,9 +70,8 @@ namespace alwf
         CreateStreamOnHGlobal(hMem, TRUE, &stream);
         acul::string headers = acul::format("Content-Type: %s\r\nContent-Length: %d", res->content_type, size);
         acul::u16string w_headers = acul::utf8_to_utf16(headers);
-        platform.webViewEnvironment->CreateWebResourceResponse(stream.Get(), res->status_code,
-                                                               res->status_code == 200 ? L"OK" : L"Error",
-                                                               (LPWSTR)w_headers.c_str(), &res_raw);
+        platform.webViewEnvironment->CreateWebResourceResponse(stream.Get(), 200, L"OK", (LPWSTR)w_headers.c_str(),
+                                                               &res_raw);
     }
 
     static inline Method parse_method(LPWSTR str)
@@ -124,10 +124,10 @@ namespace alwf
             d.AddMember("success", false, a);
             rapidjson::Value e(err, a);
             d.AddMember("error", e, a);
-            return acul::alloc<JSONResponse>(std::move(d), 500);
+            return acul::alloc<JSONResponse>(std::move(d));
         }
         else
-            return acul::alloc<TextResponse>(err, 500, "text/plain");
+            return acul::alloc<TextResponse>(err, "text/plain");
     }
 
     // ----------------------------------------------------
@@ -136,6 +136,7 @@ namespace alwf
     HRESULT STDMETHODCALLTYPE WebResourceRequestedHandler::Invoke(ICoreWebView2 *sender,
                                                                   ICoreWebView2WebResourceRequestedEventArgs *args)
     {
+        assert(ctx && ctx->router);
         Microsoft::WRL::ComPtr<ICoreWebView2WebResourceRequest> request_raw;
         args->get_Request(&request_raw);
 
@@ -164,16 +165,16 @@ namespace alwf
         switch (req.method)
         {
             case Method::get:
-                router = &env.router.get;
+                router = &ctx->router->get;
                 break;
             case Method::post:
-                router = &env.router.post;
+                router = &ctx->router->post;
                 break;
             case Method::put:
-                router = &env.router.put;
+                router = &ctx->router->put;
                 break;
             case Method::del:
-                router = &env.router.del;
+                router = &ctx->router->del;
                 break;
             default:
                 return S_OK;

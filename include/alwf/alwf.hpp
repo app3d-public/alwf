@@ -32,12 +32,11 @@ namespace alwf
     class IResponse
     {
     public:
-        int status_code;
         const char *content_type;
 
         virtual ~IResponse() = default;
 
-        IResponse(int status_code, const char *content_type) : status_code(status_code), content_type(content_type) {}
+        IResponse(const char *content_type) : content_type(content_type) {}
 
         virtual const char *data() const = 0;
         virtual size_t size() const = 0;
@@ -48,8 +47,8 @@ namespace alwf
     public:
         acul::string content;
 
-        TextResponse(const acul::string &content, int status_code = 200, const char *content_type = "text/html")
-            : IResponse(status_code, content_type), content(content)
+        TextResponse(const acul::string &content, const char *content_type = "text/html")
+            : IResponse(content_type), content(content)
         {
         }
 
@@ -63,22 +62,17 @@ namespace alwf
     public:
         acul::vector<char> content;
 
-        BinaryResponse(const acul::vector<char> &content, int status_code = 200,
-                       const char *content_type = "application/octet-stream")
-            : IResponse(status_code, content_type), content(content)
+        BinaryResponse(const acul::vector<char> &content, const char *content_type = "application/octet-stream")
+            : IResponse(content_type), content(content)
         {
         }
 
-        BinaryResponse(acul::vector<char> &&content, int status_code = 200,
-                       const char *content_type = "application/octet-stream")
-            : IResponse(status_code, content_type), content(std::move(content))
+        BinaryResponse(acul::vector<char> &&content, const char *content_type = "application/octet-stream")
+            : IResponse(content_type), content(std::move(content))
         {
         }
 
-        BinaryResponse(int status_code = 200, const char *content_type = "application/octet-stream")
-            : IResponse(status_code, content_type)
-        {
-        }
+        BinaryResponse(const char *content_type = "application/octet-stream") : IResponse(content_type) {}
 
         virtual const char *data() const override { return content.data(); }
         virtual size_t size() const override { return content.size(); }
@@ -93,14 +87,13 @@ namespace alwf
         virtual const char *data() const override { return buf; }
         virtual size_t size() const override { return len; }
 
-        BinaryViewResponse(const char *buf, size_t len, int status_code = 200,
-                           const char *content_type = "application/octet-stream")
-            : IResponse(status_code, content_type), buf(buf), len(len)
+        BinaryViewResponse(const char *buf, size_t len, const char *content_type = "application/octet-stream")
+            : IResponse(content_type), buf(buf), len(len)
         {
         }
 
-        BinaryViewResponse(int status_code = 200, const char *content_type = "application/octet-stream")
-            : IResponse(status_code, content_type), buf(nullptr), len(0)
+        BinaryViewResponse(const char *content_type = "application/octet-stream")
+            : IResponse(content_type), buf(nullptr), len(0)
         {
         }
     };
@@ -110,8 +103,7 @@ namespace alwf
     public:
         acul::string json;
 
-        JSONResponse(rapidjson::Document &&d, int status_code = 200, const char *content_type = "application/json")
-            : IResponse(status_code, content_type)
+        JSONResponse(rapidjson::Document &&d, const char *content_type = "application/json") : IResponse(content_type)
         {
             rapidjson::StringBuffer buf;
             rapidjson::Writer<rapidjson::StringBuffer> w(buf);
@@ -119,8 +111,8 @@ namespace alwf
             json.assign(buf.GetString(), buf.GetSize());
         }
 
-        JSONResponse(const acul::string &json, int status_code = 200, const char *content_type = "application/json")
-            : IResponse(status_code, content_type), json(json)
+        JSONResponse(const acul::string &json, const char *content_type = "application/json")
+            : IResponse(content_type), json(json)
         {
         }
 
