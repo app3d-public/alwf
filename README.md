@@ -58,10 +58,10 @@ These are system libraries that must be available at build time:
 ### Bundled submodules
 The following dependencies are included as git submodules and must be checked out when cloning:
 
-- [acbt](https://git.homedatasrv.ru/app3d/acbt)
-- [acul](https://git.homedatasrv.ru/app3d/acul)
-- [awin](https://git.homedatasrv.ru/app3d/awin) Microsoft Windows only
-- [ahtt](https://git.homedatasrv.ru/app3d/ahtt)
+- [acbt](https://github.com/app3d-public/acbt)
+- [acul](https://github.com/app3d-public/acul)
+- [awin](https://github.com/app3d-public/awin) Microsoft Windows only
+- [ahtt](https://github.com/app3d-public/ahtt)
 
 ### Quick start
 Follow these steps to scaffold and build a fresh app powered by **alwf**.
@@ -113,10 +113,10 @@ An example project is available in [`example/`](example/) folder
 
 <details>
   <summary>Screenshots</summary>
-  <a href="/app3d/alwf/raw/branch/master/example/screenshots/windows-root.png">
+  <a href="/app3d-public/alwf/raw/branch/master/example/screenshots/windows-root.png">
     <img src="./example/screenshots/windows-root.png" alt="screenshot" width="350"/>
   </a>
-  <a href="/app3d/alwf/raw/branch/master/example/screenshots/linux-api.png">
+  <a href="/app3d-public/alwf/raw/branch/master/example/screenshots/linux-api.png">
     <img src="./example/screenshots/linux-api.png" alt="screenshot" width="350"/>
   </a>
 </details>
