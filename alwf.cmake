@@ -12,10 +12,12 @@ add_compile_options(
     "$<$<CONFIG:Release>:-O3;-DNDEBUG;-fomit-frame-pointer>"
 )
 
-set(APP_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/${CMAKE_SYSTEM_NAME})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${APP_LIB_DIR})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${APP_LIB_DIR})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${APP_LIB_DIR})
+if(NOT DEFINED APP_LIB_DIR)
+    set(APP_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/${CMAKE_SYSTEM_NAME})
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${APP_LIB_DIR})
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${APP_LIB_DIR})
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${APP_LIB_DIR})
+endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -fexperimental-library")
@@ -89,9 +91,11 @@ foreach(AT_FILE ${AT_FILES})
     get_filename_component(AT_NAME "${AT_FILE}" NAME_WE)
     set(OUT_HEADER "${GENERATED_DIR}/${AT_NAME}.hpp")
     set(DEP_FILE "${GENERATED_DIR}/${AT_NAME}.dep")
-    if (UNIX)
+
+    if(UNIX)
         set(LD_PREFIX LD_LIBRARY_PATH=${APP_LIB_DIR})
     endif()
+
     add_custom_command(
         OUTPUT "${OUT_HEADER}"
         COMMAND ${LD_PREFIX} $<TARGET_FILE:ahtt>
