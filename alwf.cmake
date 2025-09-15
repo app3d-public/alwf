@@ -237,8 +237,8 @@ if(WIN32)
 
     # Manifest
     set(APP_MANIFEST_DEPS
-        libacul:${acul_VERSION}
-        libawin:${awin_VERSION}
+        libacul:${ACUL_VERSION}
+        libawin:${AWIN_VERSION}
         WebView2Loader:${WEBVIEW2_LOADER_VERSION}
         ${ALWF_MANIFEST_DEPS}
     )

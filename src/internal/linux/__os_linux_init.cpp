@@ -186,10 +186,8 @@ namespace alwf
     {
         WebKitURIRequest *req = webkit_navigation_action_get_request(nav);
         const gchar *uri = webkit_uri_request_get_uri(req);
-        if (uri && g_str_has_prefix(uri, "app:///"))
-            webkit_web_view_load_uri(webview, uri);
-        else if (uri)
-            gtk_show_uri_on_window(nullptr, uri, GDK_CURRENT_TIME, nullptr);
+        if (uri && g_str_has_prefix(uri, "app:///")) webkit_web_view_load_uri(webview, uri);
+        else if (uri) gtk_show_uri_on_window(nullptr, uri, GDK_CURRENT_TIME, nullptr);
         return nullptr;
     }
 
@@ -207,6 +205,7 @@ namespace alwf
             acul::string handler = doc["handler"].GetString();
             auto it = ctx->handler_router->find(handler);
             if (it != ctx->handler_router->end()) it->second(doc);
+            else LOG_ERROR("No such handler: %s", handler.c_str());
         }
 
         g_free(json_str);

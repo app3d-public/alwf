@@ -113,13 +113,23 @@ namespace alwf
     {
         LOG_INFO("Run main loop");
 #ifdef _WIN32
-        auto *w = static_cast<awin::Window *>(rt->window);
+        PLATFORM_WINDOW *w = rt->window;
         while (w && !w->ready_to_close()) awin::wait_events();
         if (w) w->destroy();
 #else
         g_signal_connect(rt->window, "destroy", G_CALLBACK(gtk_main_quit), nullptr);
         gtk_widget_show_all(rt->window);
         gtk_main();
+#endif
+    }
+
+    void close_window()
+    {
+#ifdef _WIN32
+        PLATFORM_WINDOW *w = rt->window;
+        if (w) w->ready_to_close(true);
+#else
+        gtk_main_quit();
 #endif
     }
 

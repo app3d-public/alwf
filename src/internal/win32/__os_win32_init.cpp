@@ -33,6 +33,7 @@ namespace alwf
                 acul::string handler = doc["handler"].GetString();
                 auto it = ctx->handler_router->find(handler);
                 if (it != ctx->handler_router->end()) it->second(doc);
+                else LOG_ERROR("No such handler: %s", handler.c_str());
             }
         }
         CoTaskMemFree(message);
@@ -126,8 +127,7 @@ namespace alwf
             d.AddMember("error", e, a);
             return acul::alloc<JSONResponse>(std::move(d));
         }
-        else
-            return acul::alloc<TextResponse>(err, "text/plain");
+        else return acul::alloc<TextResponse>(err, "text/plain");
     }
 
     // ----------------------------------------------------
@@ -198,8 +198,7 @@ namespace alwf
         }
         else
         {
-            if (auto *res = load_static_file(path))
-                create_web_response(res, response);
+            if (auto *res = load_static_file(path)) create_web_response(res, response);
             else
                 platform.webViewEnvironment->CreateWebResourceResponse(nullptr, 404, L"Not Found",
                                                                        L"Content-Type: text/html", &response);

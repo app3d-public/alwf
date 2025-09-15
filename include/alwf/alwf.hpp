@@ -175,6 +175,7 @@ namespace alwf
 
     void init(const Options &opt);
     void run();
+    void close_window();
     void shutdown();
     void send_json_to_frontend(const rapidjson::Value &json);
 } // namespace alwf
