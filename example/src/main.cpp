@@ -20,7 +20,7 @@ int main(int argc, char **argv)
     opt.width = 1200;
     opt.height = 800;
 
-    acul::io::path current_path = acul::io::get_current_path();
+    acul::path current_path = acul::io::get_current_path();
     // i18n (Actually not used in this example)
     const char *languages[] = {"en", "ru"};
     opt.languages = languages;

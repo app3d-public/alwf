@@ -19,28 +19,15 @@ if(NOT DEFINED APP_LIB_DIR)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${APP_LIB_DIR})
 endif()
 
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_EXTENSIONS ON)
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -fexperimental-library")
-    add_definitions(-D_LIBCPP_NO_VCRUNTIME)
-    add_compile_options(-Wno-vla-extension)
-
-    if(CMAKE_BUILD_TYPE MATCHES Debug AND USE_ASAN)
-        add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
-    endif()
+    configure_clang_toolchain()
 endif()
 
 if(CMAKE_BUILD_TYPE MATCHES Release)
-    include(CheckCXXCompilerFlag)
-    check_cxx_compiler_flag("-flto" HAS_LTO)
-    check_cxx_compiler_flag("-s" HAS_S)
-
-    if(HAS_LTO)
-        add_compile_options("$<$<CONFIG:Release>:-flto>")
-    endif()
-
-    if(HAS_S)
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s")
-    endif()
+    enable_lto()
+    enable_strip()
 endif()
 
 if(WIN32)

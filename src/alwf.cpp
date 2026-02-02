@@ -47,7 +47,11 @@ namespace alwf
     static PLATFORM_WINDOW *init_window(const Options &opt)
     {
 #ifdef _WIN32
-        awin::init_library(&rt->ed);
+        awin::InitConfig cfg;
+        cfg.events_dispatcher = &rt->ed;
+        cfg.log_service = rt->logsvc;
+        cfg.logger = acul::log::get_default_logger();
+        awin::init_library(cfg);
         awin::WindowFlags flags = map_win_flags(opt.flags);
         static awin::Window window{opt.title, opt.width, opt.height, flags};
         rt->window = &window;
@@ -83,13 +87,13 @@ namespace alwf
             auto *logger = rt->logsvc->add_logger<acul::log::file_logger>("app", opt.log_file,
                                                                           std::ios_base::out | std::ios_base::trunc);
             logger->set_pattern("%(ascii_time) %(level_name) %(message)\n");
-            rt->logsvc->default_logger = logger;
+            acul::log::set_default_logger(logger);
         }
         else
         {
             auto *logger = rt->logsvc->add_logger<acul::log::console_logger>("app");
             logger->set_pattern("%(ascii_time) %(level_name) %(message)\n");
-            rt->logsvc->default_logger = logger;
+            acul::log::set_default_logger(logger);
         }
 
         ctx = acul::alloc<Context>();
