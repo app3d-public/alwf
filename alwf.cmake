@@ -45,7 +45,7 @@ if(NOT TARGET acul)
     )
 endif()
 
-if(WIN32)
+if(WIN32 AND NOT TARGET awin)
     set(ENABLE_AGRB OFF)
     add_subdirectory(
         "${ALWF_ROOT_DIR}/modules/awin"
