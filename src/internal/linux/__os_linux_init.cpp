@@ -56,9 +56,9 @@ namespace alwf
             d.AddMember("success", false, a);
             rapidjson::Value e(err, a);
             d.AddMember("error", e, a);
-            return acul::alloc<JSONResponse>(std::move(d), 500);
+            return acul::alloc<JSONResponse>(std::move(d));
         }
-        else { return acul::alloc<TextResponse>(err, 500, "text/plain"); }
+        else { return acul::alloc<TextResponse>(err, "text/plain"); }
     }
 
     static void finish_404(WebKitURISchemeRequest *request)
