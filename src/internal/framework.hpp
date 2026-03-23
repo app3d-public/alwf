@@ -3,7 +3,7 @@
 #include <alwf/alwf.hpp>
 
 #ifdef _WIN32
-    #include <awin/window.hpp>
+    #include <awin/awin.hpp>
 using PLATFORM_WINDOW = awin::Window;
 #else
     #include <gtk/gtk.h>
