@@ -16,6 +16,10 @@ git submodule update --init --progress cmake
 echo "==> Init/update: modules/acul"
 git submodule update --init --progress modules/acul
 
+echo "==> Init/update: modules/umbf"
+git submodule update --init --progress modules/umbf
+git -C modules/umbf submodule update --init --progress modules/amal
+
 if detect_windows; then
   echo "==> Init/update: modules/awin (Windows detected)"
   git submodule update --init --progress modules/awin
