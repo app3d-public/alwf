@@ -48,13 +48,10 @@ if(NOT TARGET acul)
     )
 endif()
 
-if(NOT DEFINED UMBF_ROOT_DIR)
-    set(UMBF_ROOT_DIR "${ALWF_ROOT_DIR}/../umbf")
-endif()
 
 if(NOT TARGET umbf)
     add_subdirectory(
-        "${UMBF_ROOT_DIR}"
+        "${ALWF_ROOT_DIR}/modules/umbf"
         "${CMAKE_CURRENT_BINARY_DIR}/alwf/umbf"
         EXCLUDE_FROM_ALL
     )
