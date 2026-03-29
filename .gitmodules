@@ -10,3 +10,6 @@
 [submodule "modules/ahtt"]
 	path = modules/ahtt
 	url = ../ahtt.git
+[submodule "modules/umbf"]
+	path = modules/umbf
+	url = ../umbf.git

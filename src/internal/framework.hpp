@@ -1,6 +1,7 @@
 #pragma once
 
 #include <alwf/alwf.hpp>
+#include <umbf/umbf.hpp>
 
 #ifdef _WIN32
     #include <awin/awin.hpp>
@@ -25,9 +26,22 @@ namespace alwf
 
     extern struct Context
     {
-        const char *static_folder;
+        acul::string static_assets;
         Router *router;
         HandlerRouter *handler_router;
         FileCache file_cache;
+        struct StaticResolver final : umbf::streams::Resolver
+        {
+            umbf::streams::HashResolver local;
+            umbf::streams::Resolver *fallback = nullptr;
+
+            const umbf::streams::Stream *get_stream(u32 signature) override
+            {
+                if (const auto *stream = local.get_stream(signature)) return stream;
+                return fallback ? fallback->get_stream(signature) : nullptr;
+            }
+        } static_resolver;
+        bool static_assets_loaded = false;
+        umbf::LibraryMapData static_library;
     } *ctx;
 } // namespace alwf

@@ -166,7 +166,7 @@ namespace alwf
         const char *log_file = nullptr;
 
         // Static files
-        const char *static_folder = nullptr;
+        const char *static_assets = nullptr;
 
         // Navigation
         Router *router = nullptr;

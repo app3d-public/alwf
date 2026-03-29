@@ -99,7 +99,21 @@ namespace alwf
         ctx = acul::alloc<Context>();
         ctx->router = opt.router;
         ctx->handler_router = opt.handler_router;
-        ctx->static_folder = opt.static_folder;
+        if (opt.static_assets) ctx->static_assets = opt.static_assets;
+
+        if (!ctx->static_assets.empty())
+        {
+            ctx->static_resolver.local.streams = {{umbf::sign_block::library, &umbf::streams::library},
+                                                  {umbf::sign_block::mapping, &umbf::streams::mapping_block}};
+            ctx->static_resolver.fallback = umbf::streams::resolver;
+
+            auto *prev_resolver = umbf::streams::resolver;
+            umbf::streams::resolver = &ctx->static_resolver;
+            auto result = umbf::load_library_mapped(ctx->static_assets.c_str(), ctx->static_library);
+            umbf::streams::resolver = prev_resolver;
+            ctx->static_assets_loaded = result.success();
+            if (!ctx->static_assets_loaded) LOG_WARN("Failed to load static umlib: %s", ctx->static_assets.c_str());
+        }
 
         LOG_INFO("Setup i18n");
         setup_i18n(opt);
@@ -144,6 +158,11 @@ namespace alwf
 #ifdef _WIN32
         awin::destroy_library();
 #endif
+        if (ctx && ctx->static_library.fd)
+        {
+            fclose(ctx->static_library.fd);
+            ctx->static_library.fd = nullptr;
+        }
         acul::release(rt);
         acul::release(ctx);
         ctx = nullptr;

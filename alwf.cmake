@@ -3,6 +3,9 @@ if(NOT DEFINED ACBT_LOADED)
 endif()
 
 set(APP_NAME ${ALWF_APP_NAME})
+if(NOT DEFINED ALWF_STATIC_ASSETS_NAME)
+    set(ALWF_STATIC_ASSETS_NAME "assets.umlib")
+endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(USE_ASAN "Use Address Sanitizer" OFF)
@@ -42,6 +45,18 @@ if(NOT TARGET acul)
     add_subdirectory(
         "${ALWF_ROOT_DIR}/modules/acul"
         "${CMAKE_CURRENT_BINARY_DIR}/alwf/acul"
+    )
+endif()
+
+if(NOT DEFINED UMBF_ROOT_DIR)
+    set(UMBF_ROOT_DIR "${ALWF_ROOT_DIR}/../umbf")
+endif()
+
+if(NOT TARGET umbf)
+    add_subdirectory(
+        "${UMBF_ROOT_DIR}"
+        "${CMAKE_CURRENT_BINARY_DIR}/alwf/umbf"
+        EXCLUDE_FROM_ALL
     )
 endif()
 
@@ -169,9 +184,56 @@ if(NOT DEFINED ALWF_FRONTEND_DISABLE)
     list(APPEND DEPENDENT_TARGETS copy_alwf_js)
 endif()
 
+if(DEFINED ALWF_PUBLIC_DIR)
+    if(NOT DEFINED ALWF_PUBLIC_UMLIB_OUTPUT)
+        set(ALWF_PUBLIC_UMLIB_OUTPUT "${CMAKE_SOURCE_DIR}/${ALWF_STATIC_ASSETS_NAME}")
+    endif()
+
+    find_program(ALWF_UMBF_CONVERT_EXECUTABLE
+        NAMES umbf-convert umbf-convert.exe
+    )
+
+    if(NOT ALWF_UMBF_CONVERT_EXECUTABLE AND DEFINED UMBF_CONVERT_TOOL_PATH AND NOT "${UMBF_CONVERT_TOOL_PATH}" STREQUAL "")
+        set(ALWF_UMBF_CONVERT_EXECUTABLE "${UMBF_CONVERT_TOOL_PATH}")
+    endif()
+
+    if(NOT ALWF_UMBF_CONVERT_EXECUTABLE)
+        message(FATAL_ERROR
+            "umbf-convert was not found in PATH and UMBF_CONVERT_TOOL_PATH is empty. "
+            "Set UMBF_CONVERT_TOOL_PATH to the converter executable path."
+        )
+    endif()
+
+    if(NOT EXISTS "${ALWF_UMBF_CONVERT_EXECUTABLE}")
+        message(FATAL_ERROR "umbf-convert executable does not exist: ${ALWF_UMBF_CONVERT_EXECUTABLE}")
+    endif()
+
+    file(GLOB_RECURSE ALWF_PUBLIC_FILES "${ALWF_PUBLIC_DIR}/*")
+
+    if(UNIX)
+        set(ALWF_PACK_LD_PREFIX LD_LIBRARY_PATH=${APP_LIB_DIR})
+    endif()
+
+    set(ALWF_PUBLIC_PACK_DEPS ${ALWF_PUBLIC_FILES} "${ALWF_UMBF_CONVERT_EXECUTABLE}")
+    if(TARGET copy_alwf_js)
+        list(APPEND ALWF_PUBLIC_PACK_DEPS copy_alwf_js)
+    endif()
+
+    add_custom_command(
+        OUTPUT "${ALWF_PUBLIC_UMLIB_OUTPUT}"
+        COMMAND ${ALWF_PACK_LD_PREFIX} "${ALWF_UMBF_CONVERT_EXECUTABLE}" convert -R -i "${ALWF_PUBLIC_DIR}" -o "${ALWF_PUBLIC_UMLIB_OUTPUT}" --format=raw --mapped --compressed
+        DEPENDS ${ALWF_PUBLIC_PACK_DEPS}
+        COMMENT "Pack ${ALWF_PUBLIC_DIR} -> ${ALWF_PUBLIC_UMLIB_OUTPUT}"
+        VERBATIM
+    )
+    add_custom_target(pack_public_umlib DEPENDS "${ALWF_PUBLIC_UMLIB_OUTPUT}")
+    list(APPEND DEPENDENT_TARGETS pack_public_umlib)
+endif()
+
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${PROJECT_NAME} PRIVATE ${ALWF_ROOT_DIR}/include)
-target_link_libraries(${PROJECT_NAME} PRIVATE acul)
+target_link_libraries(${PROJECT_NAME} PRIVATE acul umbf)
+target_compile_definitions(${PROJECT_NAME} PRIVATE ALWF_STATIC_ASSETS_NAME="${ALWF_STATIC_ASSETS_NAME}")
 
 if(WIN32)
     target_link_libraries(${PROJECT_NAME} PRIVATE shlwapi awin)
