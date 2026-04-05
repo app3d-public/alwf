@@ -30,7 +30,7 @@ namespace alwf
     static awin::WindowFlags map_win_flags(AlwfWindowFlags f)
     {
         using B = awin::WindowFlagBits;
-        awin::WindowFlags out = awin::WindowFlagBits::NATIVE_RESERVE_FLAG;
+        awin::WindowFlags out{};
         if (f & AlwfWindowFlagBits::decorated) out |= B::decorated | B::maximize_box;
         if (f & AlwfWindowFlagBits::resizable) out |= B::resizable;
         if (f & AlwfWindowFlagBits::minimize_box) out |= B::minimize_box;

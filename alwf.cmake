@@ -1,6 +1,30 @@
 if(NOT DEFINED ACBT_LOADED)
     include(${ALWF_ROOT_DIR}/cmake/utils.cmake)
 endif()
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/windows_sdk_tools.cmake)
+
+if(WIN32 AND NOT DEFINED ALWF_WEBVIEW2_VERSION)
+    if(DEFINED ENV{NUGET_PACKAGES} AND NOT "$ENV{NUGET_PACKAGES}" STREQUAL "")
+        set(_alwf_webview2_global_packages_root "$ENV{NUGET_PACKAGES}")
+    else()
+        set(_alwf_webview2_global_packages_root "$ENV{USERPROFILE}/.nuget/packages")
+    endif()
+
+    file(GLOB _alwf_webview2_cached_version_dirs
+        LIST_DIRECTORIES true
+        "${_alwf_webview2_global_packages_root}/microsoft.web.webview2/*")
+    list(SORT _alwf_webview2_cached_version_dirs COMPARE NATURAL ORDER DESCENDING)
+    list(LENGTH _alwf_webview2_cached_version_dirs _alwf_webview2_cached_version_count)
+    if(_alwf_webview2_cached_version_count GREATER 0)
+        list(GET _alwf_webview2_cached_version_dirs 0 _alwf_webview2_cached_version_dir)
+        get_filename_component(_alwf_webview2_default_version "${_alwf_webview2_cached_version_dir}" NAME)
+    else()
+        set(_alwf_webview2_default_version "1.0.3405.78")
+    endif()
+
+    set(ALWF_WEBVIEW2_VERSION "${_alwf_webview2_default_version}" CACHE STRING
+        "Version of Microsoft.Web.WebView2 to install from NuGet")
+endif()
 
 set(APP_NAME ${ALWF_APP_NAME})
 if(NOT DEFINED ALWF_STATIC_ASSETS_NAME)
@@ -64,12 +88,45 @@ if(WIN32 AND NOT TARGET awin)
         "${CMAKE_CURRENT_BINARY_DIR}/alwf/awin"
         EXCLUDE_FROM_ALL
     )
+endif()
 
-    if(DEFINED ENV{WEBVIEW2_SDK_PATH})
-        include_directories("$ENV{WEBVIEW2_SDK_PATH}/build/native/include")
+if(WIN32)
+    set(alwf_webview2_root_dir "${CMAKE_BINARY_DIR}/webview2-sdk")
+    set(alwf_webview2_packages_dir "${alwf_webview2_root_dir}/packages")
+
+    acbt_nuget_install_package(
+        PACKAGE_NAME "Microsoft.Web.WebView2"
+        PACKAGE_VERSION "${ALWF_WEBVIEW2_VERSION}"
+        OUTPUT_DIRECTORY "${alwf_webview2_packages_dir}")
+
+    set(alwf_webview2_package_dir
+        "${alwf_webview2_packages_dir}/Microsoft.Web.WebView2.${ALWF_WEBVIEW2_VERSION}")
+
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|arm64|aarch64)$")
+            set(alwf_webview2_arch "arm64")
+        else()
+            set(alwf_webview2_arch "x64")
+        endif()
     else()
-        message(FATAL_ERROR "WEBVIEW2_SDK_PATH is not set in the environment.")
+        set(alwf_webview2_arch "x86")
     endif()
+
+    set(ALWF_WEBVIEW2_INCLUDE_DIR "${alwf_webview2_package_dir}/build/native/include")
+    set(ALWF_WEBVIEW2_LOADER_DIR "${alwf_webview2_package_dir}/build/native/${alwf_webview2_arch}")
+    set(ALWF_WEBVIEW2_LOADER_DLL "${ALWF_WEBVIEW2_LOADER_DIR}/WebView2Loader.dll")
+    set(ALWF_WEBVIEW2_LOADER_LIB "${ALWF_WEBVIEW2_LOADER_DIR}/WebView2LoaderStatic.lib")
+
+    foreach(required_path IN ITEMS
+        "${ALWF_WEBVIEW2_INCLUDE_DIR}/WebView2.h"
+        "${ALWF_WEBVIEW2_LOADER_DLL}"
+        "${ALWF_WEBVIEW2_LOADER_LIB}")
+        if(NOT EXISTS "${required_path}")
+            message(FATAL_ERROR "Required WebView2 file was not found: ${required_path}")
+        endif()
+    endforeach()
+
+    acbt_get_windows_dll_file_version("${ALWF_WEBVIEW2_LOADER_DLL}" WEBVIEW2_LOADER_VERSION)
 endif()
 
 add_files(${PROJECT_NAME} RECURSE ${ALWF_SOURCE_DIR})
@@ -234,6 +291,9 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE ALWF_STATIC_ASSETS_NAME="${AL
 
 if(WIN32)
     target_link_libraries(${PROJECT_NAME} PRIVATE shlwapi awin)
+    target_include_directories(${PROJECT_NAME} PRIVATE "${ALWF_WEBVIEW2_INCLUDE_DIR}")
+    target_link_directories(${PROJECT_NAME} PRIVATE "${ALWF_WEBVIEW2_LOADER_DIR}")
+    target_link_libraries(${PROJECT_NAME} PRIVATE WebView2LoaderStatic)
 else()
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
@@ -253,33 +313,24 @@ set_target_properties(${PROJECT_NAME}
 
 # Manifest & config
 if(WIN32)
-    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-        set(_wv2_arch x64)
-    else()
-        set(_wv2_arch x86)
-    endif()
+    acbt_get_target_output_dir("${PROJECT_NAME}" alwf_target_output_dir)
+    set(alwf_webview2_output_path "${alwf_target_output_dir}/WebView2Loader.dll")
+    normalize_variable_name("${PROJECT_NAME}_webview2_loader_copy" alwf_webview2_copy_target_name)
 
-    set(_WV2_DIR "$ENV{WEBVIEW2_SDK_PATH}/build/native/${_wv2_arch}")
-    set(_WV2_DLL "${_WV2_DIR}/WebView2Loader.dll")
-
-    if(EXISTS "${_WV2_DLL}")
-        execute_process(
-            COMMAND powershell -NoProfile -ExecutionPolicy Bypass
-            "(Get-Item '${_WV2_DLL}').VersionInfo.FileVersion"
-            OUTPUT_VARIABLE WEBVIEW2_LOADER_VERSION
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-            ERROR_QUIET
-        )
-        set(_WV2_DST "${APP_LIB_DIR}/WebView2Loader.dll")
-        add_custom_command(
-            OUTPUT "${_WV2_DST}"
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different "${_WV2_DLL}" "${_WV2_DST}"
-            DEPENDS "${_WV2_DLL}"
-            COMMENT "Copy WebView2Loader.dll -> ${_WV2_DST}"
-        )
-        add_custom_target(COPY_WEBVIEW2_DLL DEPENDS "${_WV2_DST}")
-        list(APPEND DEPENDENT_TARGETS COPY_WEBVIEW2_DLL)
-    endif()
+    add_custom_command(
+        OUTPUT "${alwf_webview2_output_path}"
+        COMMAND "${CMAKE_COMMAND}" -E make_directory "${alwf_target_output_dir}"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${ALWF_WEBVIEW2_LOADER_DLL}"
+            "${alwf_webview2_output_path}"
+        DEPENDS
+            "${ALWF_WEBVIEW2_LOADER_DLL}"
+        COMMENT "Copying WebView2Loader.dll for ${PROJECT_NAME}"
+        VERBATIM
+    )
+    add_custom_target(${alwf_webview2_copy_target_name} ALL
+        DEPENDS "${alwf_webview2_output_path}")
+    list(APPEND DEPENDENT_TARGETS ${alwf_webview2_copy_target_name})
 
     # Manifest
     set(APP_MANIFEST_DEPS
