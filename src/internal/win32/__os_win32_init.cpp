@@ -326,27 +326,11 @@ namespace alwf
         return E_NOINTERFACE;
     }
 
-    using CreateEnvFn = HRESULT(WINAPI *)(LPCWSTR, LPCWSTR, ICoreWebView2EnvironmentOptions *,
-                                          ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler *);
-
     void init_web_view(awin::Window *window)
     {
         HWND hwnd = awin::native_access::get_hwnd(*window);
-        HMODULE hWebView2 = LoadLibraryExW(L"WebView2Loader.dll", NULL, LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
-        if (!hWebView2)
-        {
-            MessageBoxW(hwnd, L"WebView2Loader.dll not found", L"Error", MB_OK);
-            return;
-        }
-
-        auto createEnv = (CreateEnvFn)GetProcAddress(hWebView2, "CreateCoreWebView2EnvironmentWithOptions");
-        if (!createEnv)
-        {
-            MessageBoxW(hwnd, L"CreateCoreWebView2EnvironmentWithOptions not found", L"Error", MB_OK);
-            return;
-        }
         LPCWSTR cache = L"./cache";
-        createEnv(nullptr, cache, nullptr, acul::alloc<WebView2EnvHandler>(hwnd));
+        CreateCoreWebView2EnvironmentWithOptions(nullptr, cache, nullptr, acul::alloc<WebView2EnvHandler>(hwnd));
     }
 
     void destroy_platform()

@@ -72,11 +72,11 @@ If `ALWF_STATIC_ASSETS_NAME` is not set, the default name `assets.umlib` is used
 ### Bundled submodules
 The following dependencies are included as git submodules and must be checked out when cloning:
 
-- [acbt](https://github.com/app3d-public/acbt)
-- [acul](https://github.com/app3d-public/acul)
-- [umbf](https://github.com/app3d-public/umbf)
-- [awin](https://github.com/app3d-public/awin) Microsoft Windows only
-- [ahtt](https://github.com/app3d-public/ahtt)
+- [acbt](https://repos.wusikijeronii.me/acbt)
+- [acul](https://repos.wusikijeronii.me/acul)
+- [umbf](https://repos.wusikijeronii.me/umbf)
+- [awin](https://repos.wusikijeronii.me/awin) Microsoft Windows only
+- [ahtt](https://repos.wusikijeronii.me/ahtt)
 
 ### Quick start
 Follow these steps to scaffold and build a fresh app powered by **alwf**.
@@ -156,12 +156,11 @@ An example project is available in [`example/`](example/) folder
 
 <details>
   <summary>Screenshots</summary>
-  <a href="https://github.com/app3d-public/alwf/blob/master/example/screenshots/windows-root.png">
-    <img src="./example/screenshots/windows-root.png" alt="screenshot" width="350"/>
-  </a>
-  <a href="https://github.com/app3d-public/alwf/blob/master/example/screenshots/linux-api.png">
-    <img src="./example/screenshots/linux-api.png" alt="screenshot" width="350"/>
-  </a>
+
+[<img src="./example/screenshots/windows-root.png" alt="[Win32] main page" width="350"/>](./example/screenshots/windows-root.png)
+
+[<img src="./example/screenshots/linux-api.png" alt="[Linux] API" width="350"/>](./example/screenshots/linux-api.png)
+
 </details>
 
 ## License

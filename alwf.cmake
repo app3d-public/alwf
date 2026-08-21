@@ -39,7 +39,10 @@ add_compile_options(
     "$<$<CONFIG:Release>:-O3;-DNDEBUG;-fomit-frame-pointer>"
 )
 
-if(NOT DEFINED APP_LIB_DIR)
+if(DEFINED APP_LIB_DIR)
+    set(alwf_app_lib_dir_was_defined TRUE)
+else()
+    set(alwf_app_lib_dir_was_defined FALSE)
     set(APP_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/${CMAKE_SYSTEM_NAME})
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${APP_LIB_DIR})
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${APP_LIB_DIR})
@@ -94,7 +97,7 @@ if(WIN32)
     set(alwf_webview2_root_dir "${CMAKE_BINARY_DIR}/webview2-sdk")
     set(alwf_webview2_packages_dir "${alwf_webview2_root_dir}/packages")
 
-    acbt_nuget_install_package(
+    nuget_install_package(
         PACKAGE_NAME "Microsoft.Web.WebView2"
         PACKAGE_VERSION "${ALWF_WEBVIEW2_VERSION}"
         OUTPUT_DIRECTORY "${alwf_webview2_packages_dir}")
@@ -115,7 +118,7 @@ if(WIN32)
     set(ALWF_WEBVIEW2_INCLUDE_DIR "${alwf_webview2_package_dir}/build/native/include")
     set(ALWF_WEBVIEW2_LOADER_DIR "${alwf_webview2_package_dir}/build/native/${alwf_webview2_arch}")
     set(ALWF_WEBVIEW2_LOADER_DLL "${ALWF_WEBVIEW2_LOADER_DIR}/WebView2Loader.dll")
-    set(ALWF_WEBVIEW2_LOADER_LIB "${ALWF_WEBVIEW2_LOADER_DIR}/WebView2LoaderStatic.lib")
+    set(ALWF_WEBVIEW2_LOADER_LIB "${ALWF_WEBVIEW2_LOADER_DIR}/WebView2Loader.dll.lib")
 
     foreach(required_path IN ITEMS
         "${ALWF_WEBVIEW2_INCLUDE_DIR}/WebView2.h"
@@ -126,7 +129,7 @@ if(WIN32)
         endif()
     endforeach()
 
-    acbt_get_windows_dll_file_version("${ALWF_WEBVIEW2_LOADER_DLL}" WEBVIEW2_LOADER_VERSION)
+    get_windows_dll_file_version("${ALWF_WEBVIEW2_LOADER_DLL}" WEBVIEW2_LOADER_VERSION)
 endif()
 
 add_files(${PROJECT_NAME} RECURSE ${ALWF_SOURCE_DIR})
@@ -292,8 +295,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE ALWF_STATIC_ASSETS_NAME="${AL
 if(WIN32)
     target_link_libraries(${PROJECT_NAME} PRIVATE shlwapi awin)
     target_include_directories(${PROJECT_NAME} PRIVATE "${ALWF_WEBVIEW2_INCLUDE_DIR}")
-    target_link_directories(${PROJECT_NAME} PRIVATE "${ALWF_WEBVIEW2_LOADER_DIR}")
-    target_link_libraries(${PROJECT_NAME} PRIVATE WebView2LoaderStatic)
+    target_link_libraries(${PROJECT_NAME} PRIVATE "${ALWF_WEBVIEW2_LOADER_LIB}")
 else()
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
@@ -313,13 +315,19 @@ set_target_properties(${PROJECT_NAME}
 
 # Manifest & config
 if(WIN32)
-    acbt_get_target_output_dir("${PROJECT_NAME}" alwf_target_output_dir)
-    set(alwf_webview2_output_path "${alwf_target_output_dir}/WebView2Loader.dll")
+    if(alwf_app_lib_dir_was_defined)
+        get_filename_component(alwf_webview2_output_dir "${APP_LIB_DIR}" ABSOLUTE
+            BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+    else()
+        get_target_output_dir("${PROJECT_NAME}" alwf_webview2_output_dir)
+    endif()
+
+    set(alwf_webview2_output_path "${alwf_webview2_output_dir}/WebView2Loader.dll")
     normalize_variable_name("${PROJECT_NAME}_webview2_loader_copy" alwf_webview2_copy_target_name)
 
     add_custom_command(
         OUTPUT "${alwf_webview2_output_path}"
-        COMMAND "${CMAKE_COMMAND}" -E make_directory "${alwf_target_output_dir}"
+        COMMAND "${CMAKE_COMMAND}" -E make_directory "${alwf_webview2_output_dir}"
         COMMAND "${CMAKE_COMMAND}" -E copy_if_different
             "${ALWF_WEBVIEW2_LOADER_DLL}"
             "${alwf_webview2_output_path}"
@@ -336,6 +344,7 @@ if(WIN32)
     set(APP_MANIFEST_DEPS
         libacul:${ACUL_VERSION}
         libawin:${AWIN_VERSION}
+        libumbf:${UMBF_VERSION}
         WebView2Loader:${WEBVIEW2_LOADER_VERSION}
         ${ALWF_MANIFEST_DEPS}
     )
