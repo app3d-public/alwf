@@ -72,11 +72,11 @@ If `ALWF_STATIC_ASSETS_NAME` is not set, the default name `assets.umlib` is used
 ### Bundled submodules
 The following dependencies are included as git submodules and must be checked out when cloning:
 
-- [acbt](https://repos.wusikijeronii.me/acbt)
-- [acul](https://repos.wusikijeronii.me/acul)
-- [umbf](https://repos.wusikijeronii.me/umbf)
-- [awin](https://repos.wusikijeronii.me/awin) Microsoft Windows only
-- [ahtt](https://repos.wusikijeronii.me/ahtt)
+- [acbt](https://repos.wusikijeronii.me/app3d/acbt)
+- [acul](https://repos.wusikijeronii.me/app3d/acul)
+- [umbf](https://repos.wusikijeronii.me/app3d/umbf)
+- [awin](https://repos.wusikijeronii.me/app3d/awin) Microsoft Windows only
+- [ahtt](https://repos.wusikijeronii.me/app3d/ahtt)
 
 ### Quick start
 Follow these steps to scaffold and build a fresh app powered by **alwf**.
