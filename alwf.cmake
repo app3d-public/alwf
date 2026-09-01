@@ -278,7 +278,7 @@ if(DEFINED ALWF_PUBLIC_DIR)
 
     add_custom_command(
         OUTPUT "${ALWF_PUBLIC_UMLIB_OUTPUT}"
-        COMMAND ${ALWF_PACK_LD_PREFIX} "${ALWF_UMBF_CONVERT_EXECUTABLE}" convert -R -i "${ALWF_PUBLIC_DIR}" -o "${ALWF_PUBLIC_UMLIB_OUTPUT}" --format=raw --mapped --compressed
+        COMMAND ${ALWF_PACK_LD_PREFIX} "${ALWF_UMBF_CONVERT_EXECUTABLE}" convert -R -i "${ALWF_PUBLIC_DIR}" -o "${ALWF_PUBLIC_UMLIB_OUTPUT}" --format=raw --compressed
         DEPENDS ${ALWF_PUBLIC_PACK_DEPS}
         COMMENT "Pack ${ALWF_PUBLIC_DIR} -> ${ALWF_PUBLIC_UMLIB_OUTPUT}"
         VERBATIM

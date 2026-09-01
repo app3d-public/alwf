@@ -103,15 +103,24 @@ namespace alwf
 
         if (!ctx->static_assets.empty())
         {
-            ctx->static_resolver.local.streams = {{umbf::sign_block::library, &umbf::streams::library},
-                                                  {umbf::sign_block::mapping, &umbf::streams::mapping_block}};
-            ctx->static_resolver.fallback = umbf::streams::resolver;
+            umbf::insert_default_block_streams(ctx->static_resolver.local);
+            umbf::insert_default_segment_codecs(ctx->static_resolver.local);
+            ctx->static_resolver.fallback = umbf::registry::resolver;
+            umbf::registry::resolver = &ctx->static_resolver;
 
-            auto *prev_resolver = umbf::streams::resolver;
-            umbf::streams::resolver = &ctx->static_resolver;
-            auto result = umbf::load_library_mapped(ctx->static_assets.c_str(), ctx->static_library);
-            umbf::streams::resolver = prev_resolver;
-            ctx->static_assets_loaded = result.success();
+            const auto result = umbf::create_read_descriptor(ctx->static_assets, ctx->static_file);
+            if (result.success() && ctx->static_file.file->type_sign == umbf::sign_block::format::library)
+            {
+                for (auto entry = ctx->static_file.begin(); entry != ctx->static_file.end(); ++entry)
+                {
+                    if (entry->signature != umbf::sign_block::library) continue;
+                    auto block = umbf::get_block(entry);
+                    if (block && block->signature() == umbf::sign_block::library)
+                        ctx->static_library = acul::static_pointer_cast<umbf::Library>(block);
+                    break;
+                }
+            }
+            ctx->static_assets_loaded = static_cast<bool>(ctx->static_library);
             if (!ctx->static_assets_loaded) LOG_WARN("Failed to load static umlib: %s", ctx->static_assets.c_str());
         }
 
@@ -158,11 +167,8 @@ namespace alwf
 #ifdef _WIN32
         awin::destroy_library();
 #endif
-        if (ctx && ctx->static_library.fd)
-        {
-            fclose(ctx->static_library.fd);
-            ctx->static_library.fd = nullptr;
-        }
+        if (ctx && umbf::registry::resolver == &ctx->static_resolver)
+            umbf::registry::resolver = ctx->static_resolver.fallback;
         acul::release(rt);
         acul::release(ctx);
         ctx = nullptr;

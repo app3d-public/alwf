@@ -349,7 +349,7 @@ namespace alwf
         platform.webView->PostWebMessageAsJson((LPCWSTR)wJson.c_str());
     }
 
-    void on_resize(awin::Window *window, acul::point2D<i32> size)
+    void on_resize(awin::Window *window, awin::IPoint size)
     {
         if (!platform.webViewController) return;
 

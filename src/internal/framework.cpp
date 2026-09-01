@@ -67,28 +67,28 @@ namespace alwf
     IResponse *load_static_file_from_umlib(const acul::string &path)
     {
         assert(ctx && "Context is not initialized");
-        if (!ctx->static_assets_loaded || !ctx->static_library.library) return nullptr;
+        if (!ctx->static_assets_loaded || !ctx->static_library) return nullptr;
 
         acul::string normalized = path;
         while (!normalized.empty() && normalized.front() == '/') normalized.erase(normalized.begin());
         if (normalized.empty()) return nullptr;
 
-        auto *node = ctx->static_library.library->get_node(acul::path(normalized));
-        if (!node || node->is_folder) return nullptr;
+        auto *node = ctx->static_library->get_node(acul::path(normalized));
+        if (!node || node->is_directory()) return nullptr;
+        if (node->index == umbf::Library::Node::invalid_index)
+            return build_static_error_response("Invalid static umlib: asset index is missing");
 
-        if (node->asset.blocks.empty())
-            return build_static_error_response("Invalid static umlib: asset block list is empty");
-
-        const auto &asset_block = node->asset.blocks.front();
-        if (!asset_block) return build_static_error_response("Invalid static umlib: asset block is null");
-
-        if (asset_block->signature() != umbf::sign_block::mapping)
-            return build_static_error_response("Invalid static umlib: expected mapping asset block");
-
-        auto mapping = acul::static_pointer_cast<umbf::Mapping>(asset_block);
+        umbf::BlockIterator entry(ctx->static_file, node->index);
+        if (!entry) return build_static_error_response("Invalid static umlib: asset block is unreadable");
+        // ALWF packs its public directory as a Library plus ordinary raw blocks.
+        if (entry->signature != umbf::sign_block::raw)
+        {
+            LOG_ERROR("Invalid static asset '%s': expected raw block, signature=0x%08x",
+                      path.c_str(), entry->signature);
+            return acul::alloc<TextResponse>("Invalid static asset type", "text/plain");
+        }
         acul::vector<char> buffer;
-        auto res = umbf::load_library_mapped_data(ctx->static_library, mapping, buffer);
-        if (!res.success()) return build_static_error_response("Failed to read static asset data from umlib");
+        if (entry->size) buffer.assign(entry->data, entry->data + static_cast<size_t>(entry->size));
         return build_response_from_buffer(path, std::move(buffer));
     }
 
