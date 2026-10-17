@@ -250,11 +250,14 @@ namespace alwf
         platform.web_view = WEBKIT_WEB_VIEW(
             g_object_new(WEBKIT_TYPE_WEB_VIEW, "web-context", context, "user-content-manager", ucm, nullptr));
 
+        g_object_unref(ucm);
+        g_object_unref(context);
         g_signal_connect(platform.web_view, "decide-policy", G_CALLBACK(on_decide_policy), nullptr);
         g_signal_connect(platform.web_view, "create", G_CALLBACK(on_create_web_view), nullptr);
         gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(platform.web_view));
 
-        webkit_web_view_load_uri(platform.web_view, "app:///");
+        auto uri = acul::string("app://") + ctx->start_path;
+        webkit_web_view_load_uri(platform.web_view, uri.c_str());
 
 #ifndef NDEBUG
         g_signal_connect(window, "key-press-event", G_CALLBACK(+[](GtkWidget *, GdkEventKey *e, gpointer) -> gboolean {
@@ -283,5 +286,5 @@ namespace alwf
                                             nullptr);
     }
 
-    void destroy_platform() {};
+    void destroy_platform() { platform.web_view = nullptr; }
 } // namespace alwf

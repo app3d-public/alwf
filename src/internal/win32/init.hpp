@@ -1,6 +1,7 @@
 #pragma once
 #include <WebView2.h>
 #include <acul/memory/alloc.hpp>
+#include <cstdint>
 #include <windows.h>
 #include <wrl.h>
 #include <wrl/client.h>
@@ -71,7 +72,9 @@ namespace alwf
     class WebView2ControllerHandler final : public ICoreWebView2CreateCoreWebView2ControllerCompletedHandler
     {
     public:
-        WebView2ControllerHandler(HWND hwnd) : _hwnd(hwnd), _refCount(1) {}
+        WebView2ControllerHandler(HWND hwnd, uint64_t generation) : _hwnd(hwnd), _generation(generation), _refCount(1)
+        {
+        }
 
         HRESULT STDMETHODCALLTYPE Invoke(HRESULT result, ICoreWebView2Controller *controller) override;
         ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&_refCount); }
@@ -85,6 +88,7 @@ namespace alwf
 
     private:
         HWND _hwnd;
+        uint64_t _generation;
         ULONG _refCount;
     };
 
@@ -94,7 +98,7 @@ namespace alwf
     class WebView2EnvHandler final : public ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler
     {
     public:
-        WebView2EnvHandler(HWND hwnd) : _hwnd(hwnd), _refCount(1) {}
+        WebView2EnvHandler(HWND hwnd, uint64_t generation) : _hwnd(hwnd), _generation(generation), _refCount(1) {}
 
         HRESULT STDMETHODCALLTYPE Invoke(HRESULT result, ICoreWebView2Environment *env) override;
         ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&_refCount); }
@@ -108,6 +112,7 @@ namespace alwf
 
     private:
         HWND _hwnd;
+        uint64_t _generation;
         ULONG _refCount;
     };
 } // namespace alwf

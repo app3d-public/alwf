@@ -229,10 +229,16 @@ endif(WIN32)
 # Frontend
 if(NOT DEFINED ALWF_FRONTEND_DISABLE)
     set(ALFW_JS_SRC "${CMAKE_CURRENT_LIST_DIR}/src/alwf.js")
-    set(ALFW_JS_DST "${ALWF_PUBLIC_DIR}/alwf.js")
+    if(DEFINED ALWF_JS_OUTPUT)
+        set(ALFW_JS_DST "${ALWF_JS_OUTPUT}")
+    else()
+        set(ALFW_JS_DST "${ALWF_PUBLIC_DIR}/alwf.js")
+    endif()
+    get_filename_component(ALWF_JS_OUTPUT_DIR "${ALFW_JS_DST}" DIRECTORY)
 
     add_custom_command(
         OUTPUT "${ALFW_JS_DST}"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${ALWF_JS_OUTPUT_DIR}"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${ALFW_JS_SRC}" "${ALFW_JS_DST}"
         DEPENDS "${ALFW_JS_SRC}"
         COMMENT "Copy alwf.js -> ${ALFW_JS_DST}"
@@ -265,7 +271,7 @@ if(DEFINED ALWF_PUBLIC_DIR)
         message(FATAL_ERROR "umbf-convert executable does not exist: ${ALWF_UMBF_CONVERT_EXECUTABLE}")
     endif()
 
-    file(GLOB_RECURSE ALWF_PUBLIC_FILES "${ALWF_PUBLIC_DIR}/*")
+    file(GLOB_RECURSE ALWF_PUBLIC_FILES CONFIGURE_DEPENDS "${ALWF_PUBLIC_DIR}/*")
 
     if(UNIX)
         set(ALWF_PACK_LD_PREFIX LD_LIBRARY_PATH=${APP_LIB_DIR})
@@ -273,12 +279,12 @@ if(DEFINED ALWF_PUBLIC_DIR)
 
     set(ALWF_PUBLIC_PACK_DEPS ${ALWF_PUBLIC_FILES} "${ALWF_UMBF_CONVERT_EXECUTABLE}")
     if(TARGET copy_alwf_js)
-        list(APPEND ALWF_PUBLIC_PACK_DEPS copy_alwf_js)
+        list(APPEND ALWF_PUBLIC_PACK_DEPS copy_alwf_js "${ALFW_JS_DST}")
     endif()
 
     add_custom_command(
         OUTPUT "${ALWF_PUBLIC_UMLIB_OUTPUT}"
-        COMMAND ${ALWF_PACK_LD_PREFIX} "${ALWF_UMBF_CONVERT_EXECUTABLE}" convert -R -i "${ALWF_PUBLIC_DIR}" -o "${ALWF_PUBLIC_UMLIB_OUTPUT}" --format=raw --mapped --compressed
+        COMMAND ${ALWF_PACK_LD_PREFIX} "${ALWF_UMBF_CONVERT_EXECUTABLE}" convert -R -i "${ALWF_PUBLIC_DIR}" -o "${ALWF_PUBLIC_UMLIB_OUTPUT}" --format=raw
         DEPENDS ${ALWF_PUBLIC_PACK_DEPS}
         COMMENT "Pack ${ALWF_PUBLIC_DIR} -> ${ALWF_PUBLIC_UMLIB_OUTPUT}"
         VERBATIM
@@ -289,7 +295,9 @@ endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${PROJECT_NAME} PRIVATE ${ALWF_ROOT_DIR}/include)
-target_link_libraries(${PROJECT_NAME} PRIVATE acul umbf)
+find_package(Intl REQUIRED)
+target_include_directories(${PROJECT_NAME} PRIVATE ${Intl_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} PRIVATE acul umbf ${Intl_LIBRARIES})
 target_compile_definitions(${PROJECT_NAME} PRIVATE ALWF_STATIC_ASSETS_NAME="${ALWF_STATIC_ASSETS_NAME}")
 
 if(WIN32)

@@ -1,5 +1,5 @@
 #include <acul/io/path.hpp>
-#include <acul/locales/locales.hpp>
+#include <alwf/i18n.hpp>
 #include <alwf/alwf.hpp>
 #include <templates/api.hpp>
 #include <templates/start.hpp>

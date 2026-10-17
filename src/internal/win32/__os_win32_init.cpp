@@ -25,7 +25,7 @@ namespace alwf
         args->get_WebMessageAsJson(&message);
         if (message)
         {
-            auto u8message = acul::utf16_to_utf8(reinterpret_cast<const std::u16string::value_type *>(message));
+            auto u8message = acul::utf16_to_utf8(acul::u16string(reinterpret_cast<const char16_t *>(message)));
             rapidjson::Document doc;
             doc.Parse(u8message.c_str());
             if (!doc.HasParseError() && doc.HasMember("handler"))
@@ -55,9 +55,8 @@ namespace alwf
 
     acul::string url_to_path(LPCWSTR url)
     {
-        acul::wstring wurl(url);
-        size_t offset = wurl.compare(0, 16, L"file://localhost") == 0 ? 16 : 0;
-        return acul::utf16_to_utf8(acul::u16string(wurl.begin() + offset, wurl.end()));
+        const auto value = acul::utf16_to_utf8(acul::u16string(reinterpret_cast<const char16_t *>(url)));
+        return value.compare(0, 16, "file://localhost") == 0 ? value.substr(16) : value;
     }
 
     void create_web_response(IResponse *res, Microsoft::WRL::ComPtr<ICoreWebView2WebResourceResponse> &res_raw)
@@ -77,12 +76,12 @@ namespace alwf
 
     static inline Method parse_method(LPWSTR str)
     {
-        static acul::hashmap<acul::wstring, Method> methods = {
-            {L"GET", Method::get}, {L"POST", Method::post}, {L"PUT", Method::put}, {L"DELETE", Method::del}};
-        auto it = methods.find(str);
+        static const acul::hashmap<acul::string, Method> methods = {
+            {"GET", Method::get}, {"POST", Method::post}, {"PUT", Method::put}, {"DELETE", Method::del}};
+        const auto method = acul::utf16_to_utf8(acul::u16string(reinterpret_cast<const char16_t *>(str)));
+        auto it = methods.find(method);
         if (it != methods.end()) return it->second;
-        acul::string method_u8 = acul::utf16_to_utf8(reinterpret_cast<const acul::u16string::value_type *>(str));
-        LOG_ERROR("Unsupported method: %s", method_u8.c_str());
+        LOG_ERROR("Unsupported method: %s", method.c_str());
         return Method::get;
     }
 
@@ -223,7 +222,7 @@ namespace alwf
                     if (k && StrCmpIW(k, header) == 0)
                     {
                         acul::string out;
-                        if (v) out = acul::utf16_to_utf8(reinterpret_cast<const std::u16string::value_type *>(v));
+                        if (v) out = acul::utf16_to_utf8(acul::u16string(reinterpret_cast<const char16_t *>(v)));
                         if (k) CoTaskMemFree(k);
                         if (v) CoTaskMemFree(v);
                         return out;
@@ -246,7 +245,7 @@ namespace alwf
         auto *headers = static_cast<ICoreWebView2HttpRequestHeaders *>(request_ctx);
         if (LPWSTR val = nullptr; SUCCEEDED(headers->GetHeader((LPWSTR)header, &val)) && val)
         {
-            acul::string out = acul::utf16_to_utf8(reinterpret_cast<const std::u16string::value_type *>(val));
+            acul::string out = acul::utf16_to_utf8(acul::u16string(reinterpret_cast<const char16_t *>(val)));
             CoTaskMemFree(val);
             return out;
         }
@@ -259,9 +258,13 @@ namespace alwf
     HRESULT STDMETHODCALLTYPE WebView2ControllerHandler::Invoke(HRESULT result, ICoreWebView2Controller *controller)
     {
         if (!controller) return E_FAIL;
+        if (_generation != platform.generation || !ctx || !IsWindow(_hwnd))
+        {
+            controller->Close();
+            return S_OK;
+        }
 
         platform.webViewController = controller;
-        controller->AddRef();
         Microsoft::WRL::ComPtr<ICoreWebView2> webView;
         controller->get_CoreWebView2(&webView);
         Microsoft::WRL::ComPtr<ICoreWebView2Settings> settings;
@@ -279,7 +282,8 @@ namespace alwf
         messageHandler.Attach(acul::alloc<WebMessageHandler>());
         webView->add_WebMessageReceived(messageHandler.Get(), &tokens[1]);
 
-        webView->Navigate(L"file://localhost/");
+        auto uri = acul::utf8_to_utf16(acul::string("file://localhost") + ctx->start_path);
+        webView->Navigate(reinterpret_cast<LPCWSTR>(uri.c_str()));
 
         RECT bounds;
         GetClientRect(_hwnd, &bounds);
@@ -305,9 +309,12 @@ namespace alwf
     // ----------------------------------------------------
     HRESULT STDMETHODCALLTYPE WebView2EnvHandler::Invoke(HRESULT result, ICoreWebView2Environment *env)
     {
+        if (_generation != platform.generation || !ctx || !IsWindow(_hwnd)) return S_OK;
         if (env)
         {
-            env->CreateCoreWebView2Controller(_hwnd, acul::alloc<WebView2ControllerHandler>(_hwnd));
+            Microsoft::WRL::ComPtr<WebView2ControllerHandler> handler;
+            handler.Attach(acul::alloc<WebView2ControllerHandler>(_hwnd, _generation));
+            env->CreateCoreWebView2Controller(_hwnd, handler.Get());
             platform.webViewEnvironment = env;
         }
         return S_OK;
@@ -330,11 +337,16 @@ namespace alwf
     {
         HWND hwnd = awin::native_access::get_hwnd(*window);
         LPCWSTR cache = L"./cache";
-        CreateCoreWebView2EnvironmentWithOptions(nullptr, cache, nullptr, acul::alloc<WebView2EnvHandler>(hwnd));
+        Microsoft::WRL::ComPtr<WebView2EnvHandler> handler;
+        handler.Attach(acul::alloc<WebView2EnvHandler>(hwnd, ++platform.generation));
+        const auto result = CreateCoreWebView2EnvironmentWithOptions(nullptr, cache, nullptr, handler.Get());
+        if (FAILED(result)) throw acul::runtime_error("Failed to initialize WebView2.");
     }
 
     void destroy_platform()
     {
+        ++platform.generation;
+        if (platform.webViewController) platform.webViewController->Close();
         platform.webView.Reset();
         platform.webViewController.Reset();
         platform.webViewEnvironment.Reset();
@@ -349,7 +361,7 @@ namespace alwf
         platform.webView->PostWebMessageAsJson((LPCWSTR)wJson.c_str());
     }
 
-    void on_resize(awin::Window *window, acul::point2D<i32> size)
+    void on_resize(awin::Window *window, acul::point<i32> size)
     {
         if (!platform.webViewController) return;
 

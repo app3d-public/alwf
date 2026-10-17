@@ -171,11 +171,16 @@ namespace alwf
         // Navigation
         Router *router = nullptr;
         HandlerRouter *handler_router = nullptr;
+        const char *start_path = "/";
     };
 
+    // A completed init/run/shutdown cycle may be followed by another init.
     void init(const Options &opt);
     void run();
     void close_window();
+    // Update the initialized window on the UI thread. Size is the client area in pixels.
+    void set_window_size(int width, int height);
+    void set_window_title(const acul::string &title);
     void shutdown();
     void send_json_to_frontend(const rapidjson::Value &json);
 } // namespace alwf
