@@ -37,7 +37,7 @@ namespace alwf
     {
         acul::string ext = acul::fs::get_extension(path);
         if (!ext.empty() && ext[0] == '.') ext.erase(0, 1);
-        ext = acul::to_lower(ext);
+        for (char &c : ext) c = acul::to_lower(c);
 
         const MimeInfo *mi = nullptr;
         if (auto it = g_mime_types.find(ext); it != g_mime_types.end()) mi = &it->second;
