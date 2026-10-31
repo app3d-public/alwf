@@ -153,6 +153,7 @@ namespace alwf
         const char *title = "Alwf App";
         int width = 800;
         int height = 600;
+        bool center_on_open = false;
         AlwfWindowFlags flags =
             AlwfWindowFlagBits::decorated | AlwfWindowFlagBits::resizable | AlwfWindowFlagBits::minimize_box;
 
@@ -178,6 +179,9 @@ namespace alwf
     void init(const Options &opt);
     void run();
     void close_window();
+    void minimize_window();
+    // Start a native move from a primary pointer press on the custom titlebar.
+    void begin_window_drag();
     // Update the initialized window on the UI thread. Size is the client area in pixels.
     void set_window_size(int width, int height);
     void set_window_title(const acul::string &title);

@@ -5,6 +5,7 @@
 #include "internal/framework.hpp"
 #ifdef _WIN32
     #include <awin/native_access.hpp>
+    #include <dwmapi.h>
 #endif
 
 namespace alwf
@@ -56,11 +57,49 @@ namespace alwf
         awin::init_library(cfg);
         rt->window_library_initialized = true;
         awin::WindowFlags flags = map_win_flags(opt.flags);
+        if (opt.center_on_open) flags |= awin::WindowFlagBits::hidden;
         rt->window = acul::alloc<awin::Window>(opt.title, opt.width, opt.height, flags);
+        if (!(opt.flags & AlwfWindowFlagBits::decorated))
+        {
+            // Fixed borderless windows have no sizing frame for DWM to infer
+            // rounded corners from. Request the Windows 11 system shape explicitly.
+            // Older Windows versions simply reject this optional attribute.
+            if (const HMODULE dwm = LoadLibraryExW(L"dwmapi.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32))
+            {
+                const auto set_attribute = reinterpret_cast<decltype(&DwmSetWindowAttribute)>(
+                    GetProcAddress(dwm, "DwmSetWindowAttribute"));
+                if (set_attribute)
+                {
+                    const DWM_WINDOW_CORNER_PREFERENCE corners = DWMWCP_ROUND;
+                    set_attribute(awin::native_access::get_hwnd(*rt->window), DWMWA_WINDOW_CORNER_PREFERENCE,
+                                  &corners, sizeof(corners));
+                }
+                FreeLibrary(dwm);
+            }
+        }
+
 
         rt->ed.bind_event(rt, awin::event_id::resize,
                           [=](const awin::PosEvent &e) { on_resize(e.window, e.position); });
         rt->ed.bind_event(rt, awin::event_id::move, [=](const awin::PosEvent &e) { on_move(); });
+        if (opt.center_on_open)
+        {
+            const HWND hwnd = awin::native_access::get_hwnd(*rt->window);
+            POINT pointer{};
+            GetCursorPos(&pointer);
+            MONITORINFO monitor{sizeof(MONITORINFO)};
+            RECT bounds{};
+            if (GetMonitorInfoW(MonitorFromPoint(pointer, MONITOR_DEFAULTTOPRIMARY), &monitor) &&
+                GetWindowRect(hwnd, &bounds))
+            {
+                const auto &work = monitor.rcWork;
+                const int width = bounds.right - bounds.left, height = bounds.bottom - bounds.top;
+                const int x = work.left + std::max(0L, (work.right - work.left - width) / 2);
+                const int y = work.top + std::max(0L, (work.bottom - work.top - height) / 2);
+                SetWindowPos(hwnd, nullptr, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+            }
+            ShowWindow(hwnd, SW_SHOWNORMAL);
+        }
         awin::update_events();
 #else
         gtk_init(nullptr, nullptr);
@@ -69,6 +108,7 @@ namespace alwf
         gtk_window_set_default_size(GTK_WINDOW(w), opt.width, opt.height);
         gtk_window_set_title(GTK_WINDOW(w), opt.title);
         apply_gtk_flags(w, opt.flags);
+        if (opt.center_on_open) gtk_window_set_position(GTK_WINDOW(w), GTK_WIN_POS_CENTER);
         rt->window = w;
 #endif
         return rt->window;
@@ -177,6 +217,29 @@ namespace alwf
         if (w) w->ready_to_close(true);
 #else
         gtk_main_quit();
+#endif
+    }
+
+    void minimize_window()
+    {
+        if (!rt || !rt->window) return;
+#ifdef _WIN32
+        rt->window->minimize();
+#else
+        gtk_window_iconify(GTK_WINDOW(rt->window));
+#endif
+    }
+
+    void begin_window_drag()
+    {
+        if (!rt || !rt->window) return;
+#ifdef _WIN32
+        if (!(GetAsyncKeyState(VK_LBUTTON) & 0x8000)) return;
+        const HWND hwnd = awin::native_access::get_hwnd(*rt->window);
+        POINT point{};
+        if (!GetCursorPos(&point)) return;
+        ReleaseCapture();
+        PostMessageW(hwnd, WM_NCLBUTTONDOWN, HTCAPTION, MAKELPARAM(point.x, point.y));
 #endif
     }
 
