@@ -307,7 +307,7 @@ if(WIN32)
 else()
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
-    pkg_check_modules(WebKit2 REQUIRED webkit2gtk-4.0)
+    pkg_search_module(WebKit2 REQUIRED webkit2gtk-4.1 webkit2gtk-4.0)
 
     target_link_libraries(${PROJECT_NAME} PRIVATE ${GTK3_LIBRARIES} ${WebKit2_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PRIVATE ${GTK3_INCLUDE_DIRS} ${WebKit2_INCLUDE_DIRS})
