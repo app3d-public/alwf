@@ -283,6 +283,11 @@ namespace alwf
         {
             rt->window->destroy();
             acul::release(rt->window);
+            // AWIN posts WM_QUIT when its window is destroyed. ALWF only owns
+            // this window session: the caller may still need a native error
+            // dialog or another ALWF window on the same thread.
+            MSG message{};
+            while (PeekMessageW(&message, nullptr, WM_QUIT, WM_QUIT, PM_REMOVE)) {}
         }
         if (rt->window_library_initialized) awin::destroy_library();
 #else
